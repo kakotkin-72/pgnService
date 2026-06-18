@@ -1,0 +1,1097 @@
+<!doctype html>
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=8">
+<meta http-equiv="MSThemeCompatible" content="yes">
+<meta name="author" content="(С) 2026 Владимир Какоткин">
+
+<title>pgnService 2026.06</title>
+
+<!------------------------------------------------------------->
+<!-- Блок: Первичная инициализация -->
+
+<script language = "JScript">
+
+var m_w96dpi = 555, m_width = 555, m_height = 355;
+
+function winHide() {
+  window.moveTo(-3000, -3000);
+}
+
+winHide();
+window.resizeTo(m_width, m_height);
+
+if (!document.documentMode || (document.documentMode != 8)) {
+  var msg =
+    "Это HTML-приложение требует поддержки режима IE=8.\n" +
+    "This HTML Application requires support for IE=8 mode.";
+
+  alert(msg);
+  self.close();
+}
+
+window.onerror = function(msg, url, num) {
+  var title = "Произошла ошибка во время работы приложения.\n";
+
+  // сработает уже на дальнейшей проверке синтаксиса
+  alert(title + "Описание: " + msg + "\nСтрока: #" + num);
+  self.close();
+};
+
+</script>
+
+<!------------------------------------------------------------->
+<!-- Блок: Глобальные свойства -->
+
+<hta:application
+  Id              = "HTA"
+  ApplicationName = "guiStarter"
+  Icon            = "pgnService.ico"
+  Border          = "dialog"
+  BorderStyle     = "normal"
+  Caption         = "yes"
+  MaximizeButton  = "no"
+  MinimizeButton  = "no"
+  Scroll          = "no"
+  Selection       = "no"
+  SingleInstance  = "yes"
+  ShowInTaskbar   = "yes"
+  SysMenu         = "yes"
+  WindowState     = "normal"
+/>
+
+<style>
+  html, body {
+    overflow: hidden;
+  }
+</style>
+
+<!------------------------------------------------------------->
+<!-- Блок: Системные переменные -->
+
+<script language = "JScript">
+
+var m_fso = new ActiveXObject("Scripting.FileSystemObject");
+var m_app = new ActiveXObject("Shell.Application");
+var m_shl = new ActiveXObject("WScript.Shell");
+
+var m_line = document.getElementById("HTA").commandLine;
+var m_path = m_fso.GetParentFolderName(m_line.replace(/"/g, ""));
+
+</script>
+
+<!------------------------------------------------------------->
+<!-- Блок: Системная библиотека -->
+
+<script language = "JScript">
+
+function regGetDPI() {
+  try {
+    var key =
+      "HKCU\\Control Panel\\Desktop\\WindowMetrics\\" +
+      "AppliedDPI";
+
+    return m_shl.RegRead(key);
+  } catch(e) {
+    return 96;
+  }
+}
+
+function regIs1251() {
+  try {
+    var key =
+      "HKLM\\SYSTEM\\CurrentControlSet\\Control\\" +
+      "Nls\\CodePage\\ACP";
+
+    return m_shl.RegRead(key) === "1251";
+  } catch(e) {
+    return false;
+  }
+}
+
+function winCenter() {
+  window.moveTo(
+    (screen.width  - m_width)  / 2,
+    (screen.height - m_height) / 2);
+}
+
+function winAdjustSize() {
+  m_width = (m_w96dpi * (regGetDPI() / 96)) | 0;
+  window.resizeTo(m_width, 100);
+
+  var doce = document.documentElement;
+  var hcnt = doce.scrollHeight;
+
+  window.resizeTo(m_width, 400);
+  var hbrd = 400 - doce.clientHeight;
+
+  m_height = hbrd + hcnt;
+  window.resizeTo(m_width, m_height);
+
+  winCenter();
+}
+
+function txtQuote(text) {
+  if (!text) return '""';
+
+  var pure = text.replace(/^"+|"+$/g, "");
+  pure = pure.replace(/"/g, '""');
+
+  return '"' + pure + '"';
+}
+
+function dlgMsg(text) {
+  text = text.replace(/&/g,  "&amp;");
+  text = text.replace(/"/g,  "&quot;");
+  text = text.replace(/'/g,  "&#39;");
+  text = text.replace(/</g,  "&lt;");
+  text = text.replace(/>/g,  "&gt;");
+  text = text.replace(/\\/g, "\\\\");
+  text = text.replace(/  /g, " &nbsp;");
+  text = text.replace(/(\r\n|\n|\r)/g, "<br>");
+
+  var div = document.createElement("div");
+
+  div.style.font       = "9pt Tahoma";
+  div.style.lineHeight = "140%";
+  div.style.width      = "192pt";
+  div.style.position   = "absolute";
+  div.style.visibility = "hidden";
+  div.innerHTML        = text;
+
+  document.body.appendChild(div);
+  var htxt = div.scrollHeight;
+  document.body.removeChild(div);
+
+  var hdlg = ((htxt > 32) ? htxt : 32) + 70;
+  hdlg = ((hdlg * 0.75) | 0) + "pt";
+
+  var title = T("Сообщение");
+
+  var html =
+    "<html><head>"                                              +
+    "<title>" + title + "</title>"                              +
+    "<meta http-equiv='content-type'"                           +
+    "  content='text/html;charset=utf-8'>"                      +
+    "<meta http-equiv='MSThemeCompatible' content='Yes'>"       +
+    "<style>"                                                   +
+    "  html,body{"                                              +
+    "    background-color:ButtonFace;color:ButtonText;"         +
+    "    margin:0;padding:9pt;overflow:hidden}"                 +
+    "  td,button{font:9pt Tahoma}"                              +
+    "  button{width:68pt;height:20pt;}"                         +
+    " .btnrect{"                                                +
+    "    position:absolute;left:9pt;bottom:14pt;"               +
+    "    width:100%;text-align:center}"                         +
+    "</style>"                                                  +
+    "</head><body>"                                             +
+    "<table"                                                    +
+    "  cellpadding='0' cellspacing='0' style='width:100%'>"     +
+    "  <tr>"                                                    +
+    "    <td"                                                   +
+    "      style='position:relative;width:42pt;height:34pt;"    +
+    "      text-align:left;vertical-align:middle;"              +
+    "      background-color:transparent;padding:0;'>"           +
+    "      <font face='Webdings'"                               +
+    "        style='color:#FFFFFF;font-size:32pt;"              +
+    "        line-height:34pt;display:block;width:34pt;"        +
+    "        text-align:center;background-color:transparent;"   +
+    "        margin:0;padding:0;'>n</font>"                     +
+    "      <font face='Webdings'"                               +
+    "        style='color:#3399FF;font-size:32pt;"              +
+    "        line-height:34pt;display:block;width:34pt;"        +
+    "        text-align:center;background-color:transparent;"   +
+    "        position:absolute;top:1pt;left:0;height:100%;"     +
+    "        margin:0;padding:0;'>i</font>"                     +
+    "    </td>"                                                 +
+    "    <td style='line-height:140%;text-align:left;"          +
+    "      vertical-align:top;'>"                        + text +
+    "    </td>"                                                 +
+    "  </tr>"                                                   +
+    "</table>"                                                  +
+    "<div class='btnrect'>"                                     +
+    "  <button onclick='window.close()'>OK</button>"            +
+    "</div>"                                                    +
+    "<s" + "cript>"                                             +
+    "  window.document.onkeydown=function(){"                   +
+    "    if(window.event.keyCode==27)window.close();};"         +
+    "</s" + "cript>"                                            +
+    "</body></html>";
+
+  var opts =
+    "dialogWidth:263pt;dialogHeight:" + hdlg + ";center:yes;" +
+    "resizable:no;scroll:no;status:no;help:no;";
+
+  html = "javascript:document.write(\"" + html + "\")";
+  window.showModalDialog(html, window, opts);
+}
+
+function winOnError(msg, url, num) {
+  var title = "Произошла ошибка во время работы приложения.\n";
+
+  try {
+    var req = new ActiveXObject("MSXML2.XMLHTTP");
+    req.open("GET", url, false);
+    req.send();
+
+    if ((req.status == 200) || (req.status == 0)) {
+      var list = req.responseText.split(/\r?\n/);
+      var item = list[num - 1];
+
+      var log =
+        title                     + "\n"   +
+        "Описание:\n    "   + msg + "\n"   +
+        "Файл (URL):\n    " + url + "\n"   +
+        "Cтрока: #"         + num + "\n\n" +
+        "Текст строки (но это неточно):\n" +
+        "- - -\n"                          +
+        item + "\n"                        +
+        "- - -";
+
+      alert(log); // dlgMsg - нельзя
+    }
+  } catch(e) {
+    alert(title + "Описание: " + msg + "\nСтрока: #" + num);
+  }
+
+  self.close();
+};
+
+function docMouseWheel() {
+  var evt = window.event, cmod = evt.ctrlKey;
+  if (!cmod) return;
+
+  // блокировка IE-масштабирования
+  evt.returnValue = false;
+  return false;
+}
+
+</script>
+
+<!------------------------------------------------------------->
+<!-- Ты их нашел :) -->
+
+</head>
+<body>
+
+<!------------------------------------------------------------->
+<!-- Блок: Локализация -->
+
+<script language = "JScript">
+
+var m_langrus = true;
+var m_dicteng = null;
+
+var m_dictrus = {
+  "Сообщение" :
+    "Message",
+  "pgnService - Панель запуска PGN-инструментов" :
+    "pgnService - Launchpad",
+  "Параметры обработки PGN-файлов:" :
+    "PGN-files processing parameters:",
+  "Справка" :
+    "Help",
+  "Использовать тег SetUp" :
+    "Use a tag SetUp",
+  "Оставлять тег ECO" :
+    "Leave a tag ECO",
+  "Оставлять WhiteElo и BlackElo" :
+    "Leave a WhiteElo and BlackElo",
+  "Оставлять WhiteFideId и BlackFideId" :
+    "Leave a WhiteFideId and BlackFideId",
+  "Сжимать неопределенную дату" :
+    "Compress an undefined date",
+  "Ширина форматирования<br>(20 - 180 символов)" :
+    "Formatting width<br>(20 - 180 characters)",
+  "Количество первых партий<br>для сортировок (до 10,000)" :
+    "Count of first games<br>for sorting (up to 10,000)",
+  "Сбросить" :
+    "Reset",
+  "Открывать итоговый файл в Блокноте" :
+    "Open the final file in Notepad",
+  "Только чистка тегов от мусора" :
+    "Only tags cleaning",
+  "Перемешать, чтобы не скушно" :
+    "Games shuffling",
+  "Компактное форматирование" :
+    "Compact formatting",
+  "Сортировать всё скучно обратно" :
+    "Games sorting",
+  "Файл не найден:\n" :
+    "File not found:\n"
+};
+
+function T(text) {
+  if (m_langrus) return text;
+  return m_dictrus[text] || text;
+}
+
+function lngMirror() {
+  if (m_dicteng) return;
+  m_dicteng = {};
+
+  for (var key in m_dictrus)
+  if (m_dictrus.hasOwnProperty(key))
+    m_dicteng[m_dictrus[key]] = key;
+}
+
+function lngToggle(rus) {
+  lngMirror();
+  m_langrus = rus;
+
+  winHide();
+
+  var dict = m_langrus ? m_dicteng : m_dictrus;
+  var tags = ["label", "button", "a"];
+
+  with (document) if (dict[title]) title = dict[title];
+
+  for (var t = 0; t < tags.length; ++t) {
+    var items = document.getElementsByTagName(tags[t]);
+
+    for (var i = items.length - 1; i >= 0; --i) {
+      var ctl = items[i];
+
+      var text = ctl.innerHTML;
+      if (!text) continue;
+
+      text = text.replace(/^\s+|\s+$/g, "");
+      text = text.replace(/\u00a0/g, " ");
+      text = text.replace(/\s+/g, " ");
+      text = text.replace(/<br\s*\/?>/gi, "<br>");
+
+      if (!dict[text]) continue;
+      ctl.innerHTML = dict[text];
+    }
+  }
+
+  winAdjustSize();
+}
+
+</script>
+
+<!------------------------------------------------------------->
+<!-- Блок: Конфигурация -->
+
+<script language = "JScript">
+
+var m_config = m_path + "\\pgnService.cfg";
+var m_cfgset = false;
+var m_cfgeco = false;
+var m_cfgelo = false;
+var m_cfgfid = false;
+var m_cfgfix = true;
+var m_cfglen = 60;
+var m_cfglim = 1000;
+var m_resout = true;
+
+function cfgLoad() {
+  m_langrus = regIs1251();
+
+  m_cfgset = m_cfgeco = m_cfgelo = m_cfgfid = false;
+  m_cfgfix = true;
+  m_cfglen = 60;
+  m_cfglim = 1000;
+  m_resout = true;
+
+  if (!m_fso.FileExists(m_config)) return;
+  var cfg = "return{0,0,0,0,1,60,1000}";
+  var lng = "", res = "";
+
+  try {
+    var inp = m_fso.OpenTextFile(m_config, 1, false, 0);
+
+    if (!inp.AtEndOfStream) {
+      cfg = inp.ReadLine();
+      lng = inp.ReadLine();
+      res = inp.ReadLine();
+    }
+
+    inp.Close();
+  } catch(e) {}
+
+  if (lng.indexOf("english") != -1) m_langrus = false; else
+  if (lng.indexOf("russian") != -1) m_langrus = true;
+
+  m_resout = res.indexOf("blindly") == -1;
+
+  cfg = cfg.replace(/[ \t]+/g, "");
+  cfg = cfg.match(/^return\{([\d,]+)\}$/);
+  if (!cfg) return;
+
+  cfg = cfg[1].split(",");
+  if (cfg.length != 7) return;
+
+  for (var i = 0; i < 7; ++i)
+    cfg[i] = parseInt(cfg[i], 10);
+
+  m_cfgset = cfg[0] != 0;
+  m_cfgeco = cfg[1] != 0;
+  m_cfgelo = cfg[2] != 0;
+  m_cfgfid = cfg[3] != 0;
+  m_cfgfix = cfg[4] != 0;
+  m_cfglen = Math.min(Math.max(cfg[5], 20), 180);
+  m_cfglim = Math.min(Math.max(cfg[6], 2),  10000);
+}
+
+function cfgSave() {
+  document.activeElement.blur();
+
+  var cfg = [
+    (m_cfgset ? 1 : 0), (m_cfgeco ? 1 : 0), (m_cfgelo ? 1 : 0),
+    (m_cfgfid ? 1 : 0), (m_cfgfix ? 1 : 0),  m_cfglen, m_cfglim];
+
+  try {
+    var out  = m_fso.OpenTextFile(m_config, 2, true, 0);
+
+    out.WriteLine("return{" + cfg.join(",") + "}");
+    out.WriteLine(m_langrus ? "--russian" : "--english");
+    out.WriteLine(m_resout  ? "--notepad" : "--blindly");
+
+    out.Close();
+  } catch(e) {}
+}
+
+function cfgApply(reset) {
+  if (reset) {
+    m_cfgset = m_cfgeco = m_cfgelo = m_cfgfid = false;
+    m_cfgfix = true;
+    m_cfglen = 60;
+    m_cfglim = 1000;
+  }
+
+  with (document) {
+    getElementById("ctlSet").checked = m_cfgset;
+    getElementById("ctlEco").checked = m_cfgeco;
+    getElementById("ctlElo").checked = m_cfgelo;
+    getElementById("ctlFid").checked = m_cfgfid;
+    getElementById("ctlFix").checked = m_cfgfix;
+    getElementById("ctlSize").value  = m_cfglen;
+    getElementById("ctlCount").value = m_cfglim;
+    getElementById("ctlRes").checked = m_resout;
+  }
+}
+
+</script>
+
+<!------------------------------------------------------------->
+<!-- Блок: SpinEdit -->
+
+<style>
+  input[type="text"].spinint {
+    box-sizing: border-box;
+    font-family: "Tahoma" !important;
+    font-size: 11pt;
+    line-height: normal;
+    text-align: right;
+    width: 38pt;
+    height: 22pt;
+    margin: 0;
+    padding: 2pt 2pt 0 2pt;
+  }
+  button.spinbtn {
+    font-family: "Tahoma" !important;
+    font-size: 6pt;
+    line-height: 4pt;
+    display: block;
+    width: 14pt;
+    height: 11pt;
+    margin: 0;
+  }
+</style>
+
+<script language = "JScript">
+
+var m_spinpause = null;
+var m_spintimer = null;
+
+function spinUpd(id, val) { // адаптация: Spin-контролы
+  if (id == "ctlSize")  m_cfglen = val; else
+  if (id == "ctlCount") m_cfglim = val;
+}
+
+function spinPress() {
+  if (window.event.keyCode < 48 || window.event.keyCode > 57)
+    window.event.returnValue = false; // не цифры
+}
+
+function spinDown(id, page, vmin, vmax) {
+  var code = window.event.keyCode;
+  var ok = false;
+
+  // Вверх/Вниз: 38, 40;  PgUp/PgDown: 33, 34
+  var list = [38, 40, 33, 34];
+  for (var i = 0; i < list.length; ++i)
+    if (list[i] == code) { ok = true; break; }
+
+  if (!ok) return;
+  window.event.returnValue = false;
+
+  var ctl = document.getElementById(id);
+  var val = parseInt(ctl.value, 10);
+
+  if (isNaN(val)) val = vmin;
+  val = Math.min(Math.max(val, vmin), vmax);
+
+  if (code == 38) val += 1;    else
+  if (code == 40) val -= 1;    else
+  if (code == 33) val += page; else
+  if (code == 34) val -= page;
+
+  val = Math.min(Math.max(val, vmin), vmax);
+
+  ctl.value = val;
+  spinUpd(id, val);
+}
+
+function spinClick(id, inc, vmin, vmax) {
+  var ctl = document.getElementById(id);
+  var val = parseInt(ctl.value, 10);
+
+  if (isNaN(val)) val = vmin;
+  val = Math.min(Math.max(val, vmin), vmax);
+
+  val = val + inc;
+  inc = Math.abs(inc);
+
+  val = Math.floor(val / inc) * inc;
+  val = Math.min(Math.max(val, vmin), vmax);
+
+  ctl.value = val;
+  spinUpd(id, val);
+}
+
+function spinCreateStep(id, inc, min, max) {
+  return function() { spinClick(id, inc, min, max); };
+}
+
+function spinStart(id, inc, min, max) {
+  spinClick(id, inc, min, max);
+  spinStop();
+
+  var step = spinCreateStep(id, inc, min, max);
+  m_spinpause = setTimeout(function()
+    { m_spintimer = setInterval(step, 50); }, 200);
+}
+
+function spinStop() {
+  if (m_spinpause)
+    { clearTimeout(m_spinpause); m_spinpause = null; }
+
+  if (m_spintimer)
+    { clearInterval(m_spintimer); m_spintimer = null; }
+}
+
+function spinDbl(id, inc, min, max) {
+  spinStop();
+  spinClick(id, inc, min, max);
+}
+
+function spinBlur(id, vmin, vmax) {
+  var ctl = document.getElementById(id);
+  var val = parseInt(ctl.value, 10);
+
+  if (isNaN(val)) val = vmin;
+  val = Math.min(Math.max(val, vmin), vmax);
+
+  ctl.value = val;
+  spinUpd(id, val);
+}
+
+function spinWheel() {
+  var evt = window.event;
+  var ctl = evt.srcElement || evt.target;
+
+  evt.returnValue = false;
+
+  var val = parseInt(ctl.value, 10) || 0;
+  var inc = 1, vmin = 0, vmax = 100;
+
+  // адаптация: Spin-контролы
+  if (ctl.id == "ctlSize")  inc = 5,  vmin = 20, vmax = 180; else
+  if (ctl.id == "ctlCount") inc = 10, vmin = 2,  vmax = 10000;
+
+  val = val + ((evt.wheelDelta > 0) ? +inc : -inc);
+  val = Math.floor(val / inc) * inc;
+  val = Math.min(Math.max(val, vmin), vmax);
+
+  ctl.value = val;
+  spinUpd(ctl.id, val);
+}
+
+</script>
+
+<!------------------------------------------------------------->
+<!-- Прикладные функции -->
+
+<script language = "JScript">
+
+function onKeyDown() {
+  var evt  = window.event, code = evt.keyCode;
+  var cmod = evt.ctrlKey,  amod = evt.altKey;
+
+  var quit =
+    (amod && (code == 88))  || // Alt-X
+    (cmod && (code == 81))  || // Ctlr-Q
+    (cmod && (code == 115)) || // Ctlr-F4
+    (code == 27);              // Esc
+
+  if (quit) { self.close(); return; }
+
+  if (cmod && (code == 107 || code == 187)) { // Ctr +
+    evt.keyCode = 0;
+    evt.returnValue = false;
+
+    // блокировка IE-масштабирования немедленным возвратом 100%
+    try { m_shl.SendKeys("^0"); } catch(e) {} // LCtrl-0
+    return false;
+  }
+  else
+  if (cmod && (code == 109 || code == 189)) { // Ctr -
+    evt.keyCode = 0;
+    evt.returnValue = false;
+
+    // блокировка IE-масштабирования немедленным возвратом 100%
+    try { m_shl.SendKeys("^0"); } catch(e) {} // LCtrl-0
+    return false;
+  }
+  else
+  if (cmod && (code == 48 || code == 96)) { // Ctr-0
+    evt.keyCode = 0;
+    evt.returnValue = false;
+
+    winAdjustSize();
+    return false;
+  }
+  else
+  if (code == 112) { // F1 - вызов справки
+    evt.keyCode = 0;
+    evt.returnValue = false;
+
+    onHelp();
+    return false;
+  }
+  else
+  if (code == 116) { // F5 - жесткое обновление
+    evt.keyCode = 0;
+    evt.returnValue = false;
+
+    var url = window.location.href.split('#')[0];
+    window.location.href = url + '#' + (new Date().getTime());
+    window.location.reload(true); // HTA Reset
+
+    return false;
+  }
+}
+
+function onReset() {
+  document.activeElement.blur();
+  cfgApply(true);
+}
+
+function onStart(tool) {
+  var eid = "VOLATILE", vid = "pgnS-retval";
+  var child = m_path + "\\guiUtility.hta";
+
+  if (!m_fso.FileExists(child)) {
+    dlgMsg(T("Файл не найден:\n") + child);
+    return;
+  }
+
+  winHide();
+
+  var args = txtQuote(child) + " " + tool;
+  if (m_resout) args += " notepad";
+
+  var env = m_shl.Environment(eid);
+  try { env.Remove(vid); } catch(e) {}
+
+  cfgSave();
+  m_shl.Run("mshta.exe " + args, 0, true);
+
+  var ret = env.Item(vid);
+  try { env.Remove(vid); } catch(e) {}
+
+  winCenter();
+
+  m_shl.AppActivate(document.title);
+  if ((ret == "OK") && m_resout)
+    window.blur();
+}
+
+function onHelp() {
+  var child = m_path + "\\!clickme.hta";
+
+  if (!m_fso.FileExists(child)) {
+    dlgMsg(T("Файл не найден:\n") + child);
+    return;
+  }
+
+  m_app.ShellExecute(child, "", "", "open", 1);
+}
+</script>
+
+<!------------------------------------------------------------->
+<!-- Прикладная инициализация -->
+
+<script language = "JScript">
+
+window.onload = function() {
+  window.onerror = winOnError;
+
+  cfgLoad();
+  cfgApply(false);
+
+  document.title =
+    "pgnService - Панель запуска PGN-инструментов";
+
+  with (document) { // адаптация: Spin-контролы
+    getElementById("ctlSize").
+      attachEvent("onmousewheel", spinWheel);
+    getElementById("ctlCount").
+      attachEvent("onmousewheel", spinWheel);
+  }
+
+  document.onmousewheel = docMouseWheel;
+  document.onkeydown = onKeyDown;
+
+  if (m_langrus) winAdjustSize(); else lngToggle(false);
+  document.activeElement.blur();
+};
+
+window.onbeforeunload = cfgSave;
+
+</script>
+
+<!------------------------------------------------------------->
+<!-- Стили интерфейса -->
+
+<style>
+  * {
+    font-family: "Tahoma", sans-serif !important;
+    font-size: 9pt;
+    font-weight: normal;
+    font-style: normal;
+    font-variant: normal;
+    line-height: normal;
+  }
+  body {
+    color: ButtonText;
+    background-color: ButtonFace;
+    margin: 12pt;
+    padding: 0;
+  }
+  table {
+    width: 100%;
+    border: none;
+    border-collapse: collapse;
+  }
+  th, td {
+    border: none;
+    padding: 0;
+    vertical-align: top;
+  }
+  input[type="checkbox"], input[type="radio"] {
+    width: 10pt;
+    height: 10pt;
+    vertical-align: middle;
+  }
+  button {
+    width: 68pt;
+    height: 21pt;
+    margin: 0;
+    padding: 0;
+  }
+  a, a:visited, a:active {
+    color: #00f !important;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+  /* для отладки верстки удалить 2 последних символа *//*
+  table, th, td {
+    outline: 1px solid black !important;
+  }
+  /* для отладки */
+</style>
+
+<!------------------------------------------------------------->
+<!-- Элементы интерфейса -->
+
+<table>
+  <tr>
+    <td style = "width:75%;padding-bottom:4pt;">
+      <label>
+        Параметры обработки PGN-файлов:
+      </label>
+    </td>
+    <td
+      align = "right"
+      style = "padding-bottom:4pt;">
+      <a href = "#"
+        onclick = "onHelp(); return false;">
+        Справка
+      </a>
+      &nbsp;
+      <a href = "#"
+        onclick = "lngToggle(!m_langrus); return false;">
+        Рус/Eng
+      </a>
+    </td>
+  </tr>
+
+  <tr style = "height:16pt;">
+    <td colspan = "2" style = "vertical-align:top;"><hr></td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td style = "width:50%;">
+      <table>
+        <tr>
+          <td style = "width:19pt;padding-top:1pt;">
+            <input
+              type     = "checkbox"
+              id       = "ctlSet"
+              onchange = "m_cfgset=this.checked">
+          </td>
+          <td style = "padding-top:2pt;">
+            <label for = "ctlSet">
+              Использовать тег SetUp
+            </label>
+          </td>
+        </tr>
+
+        <tr>
+          <td style = "padding-top:1pt;">
+            <input
+              type     = "checkbox"
+              id       = "ctlEco"
+              onchange = "m_cfgeco=this.checked">
+          </td>
+          <td style = "padding-top:2pt;">
+            <label for = "ctlEco">
+              Оставлять тег ECO
+            </label>
+          </td>
+        </tr>
+
+        <tr>
+          <td style = "padding-top:1pt;">
+            <input
+              type     = "checkbox"
+              id       = "ctlElo"
+              onchange = "m_cfgelo=this.checked">
+          </td>
+          <td style = "padding-top:2pt;">
+            <label for = "ctlElo">
+              Оставлять WhiteElo и BlackElo
+            </label>
+          </td>
+        </tr>
+
+        <tr>
+          <td style = "padding-top:1pt;">
+            <input
+              type     = "checkbox"
+              id       = "ctlFid"
+              onchange = "m_cfgfid=this.checked">
+          </td>
+          <td style = "padding-top:2pt;">
+            <label for = "ctlFid">
+              Оставлять WhiteFideId и BlackFideId
+            </label>
+          </td>
+        </tr>
+
+        <tr>
+          <td style = "padding-top:1pt;">
+            <input
+              type     = "checkbox"
+              id       = "ctlFix"
+              onchange = "m_cfgfix=this.checked">
+          </td>
+          <td style = "padding-top:2pt;">
+            <label for = "ctlFix">
+              Сжимать неопределенную дату
+            </label>
+          </td>
+        </tr>
+      </table>
+    </td>
+
+    <td style="padding-left:4pt;">
+      <table>
+        <tr style = "height:27pt;">
+          <td style = "width:40pt;padding-top:3pt;">
+            <table>
+              <tr>
+                <td>
+                  <input
+                    type       = "text"
+                    class      = "spinint"
+                    style      = "width:40pt;"
+                    id         = "ctlSize"
+                    value      = "60"
+                    onblur     = "spinBlur('ctlSize',20,180)"
+                    onkeypress = "spinPress()"
+                    onkeydown  =
+                      "spinDown('ctlSize',10,20,180)">
+                </td>
+
+                <td>
+                  <button
+                    class       = "spinbtn"
+                    onmouseup   = "spinStop()"
+                    onmouseout  = "spinStop()"
+                    onmousedown =
+                      "spinStart('ctlSize',+10,20,180)"
+                    ondblclick =
+                      "spinDbl('ctlSize',+10,20,180)">
+                  ▲</button>
+                  <button
+                    class       = "spinbtn"
+                    onmouseup   = "spinStop()"
+                    onmouseout  = "spinStop()"
+                    onmousedown =
+                      "spinStart('ctlSize',-10,20,180)"
+                    ondblclick =
+                      "spinDbl('ctlSize',-10,20,180)">
+                  ▼</button>
+                </td>
+              </tr>
+            </table>
+          </td>
+          <td style = "padding: 2pt 0 6pt 6pt;">
+            <label>
+              Ширина форматирования<br>
+              (20 - 180 символов)
+            </label>
+          </td>
+        </tr>
+
+        <tr style = "height:27pt;">
+          <td style = "padding-top:3pt;">
+            <table>
+              <tr>
+                <td>
+                  <input
+                    type       = "text"
+                    class      = "spinint"
+                    style      = "width:40pt;"
+                    id         = "ctlCount"
+                    value      = "100"
+                    onblur     = "spinBlur('ctlCount',2,10000)"
+                    onkeypress = "spinPress()"
+                    onkeydown  =
+                      "spinDown('ctlCount',100,2,10000)">
+                </td>
+
+                <td>
+                  <button
+                    class       = "spinbtn"
+                    onmouseup   = "spinStop()"
+                    onmouseout  = "spinStop()"
+                    onmousedown =
+                      "spinStart('ctlCount',+100,2,10000)"
+                    ondblclick =
+                      "spinDbl('ctlCount',+100,2,10000)">
+                  ▲</button>
+                  <button
+                    class       = "spinbtn"
+                    onmouseup   = "spinStop()"
+                    onmouseout  = "spinStop()"
+                    onmousedown =
+                      "spinStart('ctlCount',-100,2,10000)"
+                    ondblclick =
+                      "spinDbl('ctlCount',-100,2,10000)">
+                  ▼</button>
+                </td>
+              </tr>
+            </table>
+          </td>
+          <td style = "padding: 2pt 0 6pt 6pt;">
+            <label>
+              Количество первых партий<br>
+              для сортировок (до 10,000)
+            </label>
+          </td>
+        </tr>
+      </table>
+
+      <table>
+        <tr style = "text-align:right;">
+          <td style = "height:24pt;vertical-align:bottom;">
+            <button onclick = "onReset()">
+              Сбросить
+            </button>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<table>
+  <tr style = "height:13pt;">
+    <td colspan = "2" style = "vertical-align:bottom;"><hr></td>
+  </tr>
+
+  <tr style = "height:23pt;">
+    <td style = "width:19pt;padding-top:1pt;">
+      <input
+        type     = "checkbox"
+        id       = "ctlRes"
+        onchange = "m_resout=this.checked">
+    </td>
+    <td style = "padding-top:2pt;">
+      <label for="ctlRes">
+        Открывать итоговый файл в Блокноте
+      </label>
+    </td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td style = "width:50%;padding:4pt 4pt 4pt 0;">
+      <button
+        style   = "width:100%;height:27pt;"
+        onclick = "onStart('luaClean')">
+          Только чистка тегов от мусора
+      </button>
+    </td>
+
+    <td style = "width:50%;padding: 4pt 0 4pt 4pt;">
+      <button
+        style   = "width:100%;height:27pt;"
+        onclick = "onStart('luaShuffle')">
+          Перемешать, чтобы не скушно
+      </button>
+    </td>
+  </tr>
+
+  <tr>
+    <td style = "width:50%;padding: 4pt 4pt 4pt 0;">
+      <button
+        style   = "width:100%;height:27pt;"
+        onclick = "onStart('luaFormat')">
+          Компактное форматирование
+      </button>
+    </td>
+
+    <td style = "width:50%;padding: 4pt 0 4pt 4pt;">
+      <button
+        style   = "width:100%;height:27pt;"
+        onclick = "onStart('luaNormalize')">
+          Сортировать всё скучно обратно
+      </button>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

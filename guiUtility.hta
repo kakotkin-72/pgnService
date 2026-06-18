@@ -1,0 +1,922 @@
+<!doctype html>
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=8">
+<meta http-equiv="MSThemeCompatible" content="yes">
+<meta name="author" content="(С) 2026 Владимир Какоткин">
+
+<title>pgnService 2026.06</title>
+
+<!------------------------------------------------------------->
+<!-- Блок: Первичная инициализация -->
+
+<script language = "JScript">
+
+var m_w96dpi = 555, m_width = 555, m_height = 235;
+
+function winHide() {
+  window.moveTo(-3000, -3000);
+}
+
+winHide()
+window.resizeTo(m_width, m_height);
+
+if (!document.documentMode || (document.documentMode != 8)) {
+  var msg =
+    "Это HTML-приложение требует поддержки режима IE=8.\n" +
+    "This HTML Application requires support for IE=8 mode.";
+
+  alert(msg);
+  self.close();
+}
+
+window.onerror = function(msg, url, num) {
+  var title = "Произошла ошибка во время работы приложения.\n";
+
+  // сработает уже на дальнейшей проверке синтаксиса
+  alert(title + "Описание: " + msg + "\nСтрока: #" + num);
+  self.close();
+};
+
+</script>
+
+<!------------------------------------------------------------->
+<!-- Блок: Глобальные свойства -->
+
+<hta:application
+  Id              = "HTA"
+  ApplicationName = "guiUtility"
+  Icon            = "pgnService.ico"
+  Border          = "dialog"
+  BorderStyle     = "normal"
+  Caption         = "yes"
+  MaximizeButton  = "no"
+  MinimizeButton  = "no"
+  Scroll          = "no"
+  Selection       = "no"
+  SingleInstance  = "yes"
+  ShowInTaskbar   = "yes"
+  SysMenu         = "yes"
+  WindowState     = "normal"
+/>
+
+<style>
+  html, body {
+    overflow: hidden;
+  }
+</style>
+
+<!------------------------------------------------------------->
+<!-- Блок: Системные переменные -->
+
+<script language = "JScript">
+
+var m_args = [], m_argc = 0;
+var m_line = "";
+
+if (document.getElementById("HTA").commandLine !== undefined)
+  m_line = document.getElementById("HTA").commandLine;
+else
+if (window.dialogArguments !== undefined)
+  m_line = window.dialogArguments.args;
+
+if (m_line == "") m_line = window.location.pathname;
+
+m_line = decodeURIComponent(m_line);
+if (m_line.charAt(0) == '/' || m_line.charAt(0) == '\\')
+  m_line = m_line.substr(1);
+
+m_line = m_line.replace(/\//g, "\\");
+
+if (m_line != "") {
+  var list;
+  list = m_line.match(/"[^"\\]*(?:\\.[^"\\]*)*"|[^ ]+/g) || [];
+
+  for (var i = 0; i < list.length; ++i)
+    { m_args.push(list[i].replace(/^"|"$/g, "")); }
+
+  m_argc = m_args.length;
+}
+
+var m_fso = new ActiveXObject("Scripting.FileSystemObject");
+var m_shl = new ActiveXObject("WScript.Shell");
+
+var m_path = m_fso.GetParentFolderName(m_line.replace(/"/g, ""));
+
+</script>
+
+<!------------------------------------------------------------->
+<!-- Блок: Системная библиотека -->
+
+<script language = "JScript">
+
+function regGetDPI() {
+  try {
+    var key =
+      "HKCU\\Control Panel\\Desktop\\WindowMetrics\\" +
+      "AppliedDPI";
+
+    return m_shl.RegRead(key);
+  } catch(e) {
+    return 96;
+  }
+}
+
+function regIs1251() {
+  try {
+    var key =
+      "HKLM\\SYSTEM\\CurrentControlSet\\Control\\" +
+      "Nls\\CodePage\\ACP";
+
+    return m_shl.RegRead(key) === "1251";
+  } catch(e) {
+    return false;
+  }
+}
+
+function winCenter() {
+  window.moveTo(
+    (screen.width  - m_width)  / 2,
+    (screen.height - m_height) / 2);
+}
+
+function winAdjustSize() {
+  m_width = (m_w96dpi * (regGetDPI() / 96)) | 0;
+  window.resizeTo(m_width, 100);
+
+  var doce = document.documentElement;
+  var hcnt = doce.scrollHeight;
+
+  window.resizeTo(m_width, 400);
+  var hbrd = 400 - doce.clientHeight;
+
+  m_height = hbrd + hcnt;
+  window.resizeTo(m_width, m_height);
+
+  winCenter();
+}
+
+function txtQuote(text) {
+  if (!text) return '""';
+
+  var pure = text.replace(/^"+|"+$/g, "");
+  pure = pure.replace(/"/g, '""');
+
+  return '"' + pure + '"';
+}
+
+function txtFormat() { // txtFormat("{1}! {2}", "Hi", "Bro")
+  var fmt = arguments[0];
+  if (!fmt) return "";
+
+  var args = arguments;
+  var inc = (fmt.indexOf("{0}") != -1) ? 1 : 0;
+
+  return fmt.replace(
+    /{(\d+)}/g,
+    function(sub, num) {
+      var idx = parseInt(num, 10) + inc;
+      return (idx < args.length) ? args[idx] : sub;
+    });
+}
+
+function dlgMsg(text) {
+  text = text.replace(/&/g,  "&amp;");
+  text = text.replace(/"/g,  "&quot;");
+  text = text.replace(/'/g,  "&#39;");
+  text = text.replace(/</g,  "&lt;");
+  text = text.replace(/>/g,  "&gt;");
+  text = text.replace(/\\/g, "\\\\");
+  text = text.replace(/  /g, " &nbsp;");
+  text = text.replace(/(\r\n|\n|\r)/g, "<br>");
+
+  var div = document.createElement("div");
+
+  div.style.font       = "9pt Tahoma";
+  div.style.lineHeight = "140%";
+  div.style.width      = "192pt";
+  div.style.position   = "absolute";
+  div.style.visibility = "hidden";
+  div.innerHTML        = text;
+
+  document.body.appendChild(div);
+  var htxt = div.scrollHeight;
+  document.body.removeChild(div);
+
+  var hdlg = ((htxt > 32) ? htxt : 32) + 70;
+  hdlg = ((hdlg * 0.75) | 0) + "pt";
+
+  var title = T("Сообщение");
+
+  var html =
+    "<html><head>"                                              +
+    "<title>" + title + "</title>"                              +
+    "<meta http-equiv='content-type'"                           +
+    "  content='text/html;charset=utf-8'>"                      +
+    "<meta http-equiv='MSThemeCompatible' content='Yes'>"       +
+    "<style>"                                                   +
+    "  html,body{"                                              +
+    "    background-color:ButtonFace;color:ButtonText;"         +
+    "    margin:0;padding:9pt;overflow:hidden}"                 +
+    "  td,button{font:9pt Tahoma}"                              +
+    "  button{width:68pt;height:20pt;}"                         +
+    " .btnrect{"                                                +
+    "    position:absolute;left:9pt;bottom:14pt;"               +
+    "    width:100%;text-align:center}"                         +
+    "</style>"                                                  +
+    "</head><body>"                                             +
+    "<table"                                                    +
+    "  cellpadding='0' cellspacing='0' style='width:100%'>"     +
+    "  <tr>"                                                    +
+    "    <td"                                                   +
+    "      style='position:relative;width:42pt;height:34pt;"    +
+    "      text-align:left;vertical-align:middle;"              +
+    "      background-color:transparent;padding:0;'>"           +
+    "      <font face='Webdings'"                               +
+    "        style='color:#FFFFFF;font-size:32pt;"              +
+    "        line-height:34pt;display:block;width:34pt;"        +
+    "        text-align:center;background-color:transparent;"   +
+    "        margin:0;padding:0;'>n</font>"                     +
+    "      <font face='Webdings'"                               +
+    "        style='color:#3399FF;font-size:32pt;"              +
+    "        line-height:34pt;display:block;width:34pt;"        +
+    "        text-align:center;background-color:transparent;"   +
+    "        position:absolute;top:1pt;left:0;height:100%;"     +
+    "        margin:0;padding:0;'>i</font>"                     +
+    "    </td>"                                                 +
+    "    <td style='line-height:140%;text-align:left;"          +
+    "      vertical-align:top;'>"                        + text +
+    "    </td>"                                                 +
+    "  </tr>"                                                   +
+    "</table>"                                                  +
+    "<div class='btnrect'>"                                     +
+    "  <button onclick='window.close()'>OK</button>"            +
+    "</div>"                                                    +
+    "<s" + "cript>"                                             +
+    "  window.document.onkeydown=function(){"                   +
+    "    if(window.event.keyCode==27)window.close();};"         +
+    "</s" + "cript>"                                            +
+    "</body></html>";
+
+  var opts =
+    "dialogWidth:263pt;dialogHeight:" + hdlg + ";center:yes;" +
+    "resizable:no;scroll:no;status:no;help:no;";
+
+  html = "javascript:document.write(\"" + html + "\")";
+  window.showModalDialog(html, window, opts);
+}
+
+function dlgFolder(title) {
+  var list = [];
+
+  for (var i = 0; i < title.length; ++i)
+    { list.push(title.charCodeAt(i)); }
+
+  title = list.join(",");
+  list = null;
+
+  var code =
+    "javascript:eval('"                                 +
+    "var hdr=String.fromCharCode(" + title + ");"       +
+    "var app=new ActiveXObject(\"Shell.Application\");" +
+    "var fld=app.BrowseForFolder(0,hdr,80,17);"         +
+    "window.returnValue=(fld?fld.Self.Path:\"\");"      +
+    "window.close();"                                   +
+    "')";
+
+  var opts =
+    "dialogWidth:0px;dialogHeight:0px;" +
+    "dialogLeft:-1000px;dialogTop:-1000px;";
+
+  var ret = window.showModalDialog(code, null, opts);
+
+  window.focus();
+  try { m_shl.SendKeys("%"); window.focus(); } catch(e) {}
+
+  if (ret != "") {
+    if (ret.indexOf("::") == 0)
+      ret = "C:\\"
+    else
+    if (ret.substr(ret.length - 1) != "\\")
+      ret += "\\"
+  }
+
+  return ret;
+}
+
+function winOnError(msg, url, num) {
+  var title = "Произошла ошибка во время работы приложения.\n";
+
+  try {
+    var req = new ActiveXObject("MSXML2.XMLHTTP");
+    req.open("GET", url, false);
+    req.send();
+
+    if ((req.status == 200) || (req.status == 0)) {
+      var list = req.responseText.split(/\r?\n/);
+      var item = list[num - 1];
+
+      var log =
+        title                     + "\n"   +
+        "Описание:\n    "   + msg + "\n"   +
+        "Файл (URL):\n    " + url + "\n"   +
+        "Cтрока: #"         + num + "\n\n" +
+        "Текст строки (но это неточно):\n" +
+        "- - -\n"                          +
+        item + "\n"                        +
+        "- - -";
+
+      alert(log); // dlgMsg - нельзя
+    }
+  } catch(e) {
+    alert(title + "Описание: " + msg + "\nСтрока: #" + num);
+  }
+
+  self.close();
+};
+
+function docMouseWheel() {
+  var evt = window.event, cmod = evt.ctrlKey;
+  if (!cmod) return;
+
+  // блокировка IE-масштабирования
+  evt.returnValue = false;
+  return false;
+}
+
+function docKeyDown() {
+  var evt  = window.event, code = evt.keyCode;
+  var cmod = evt.ctrlKey,  amod = evt.altKey;
+
+  var quit =
+    (amod && (code == 88))  || // Alt-X
+    (cmod && (code == 81))  || // Ctlr-Q
+    (cmod && (code == 115)) || // Ctlr-F4
+    (code == 27);              // Esc
+
+  if (quit) { self.close(); return; }
+
+  if (cmod && (code == 107 || code == 187)) { // Ctr +
+    evt.keyCode = 0;
+    evt.returnValue = false;
+
+    // блокировка IE-масштабирования немедленным возвратом 100%
+    try { m_shl.SendKeys("^0"); } catch(e) {} // LCtrl-0
+    return false;
+  }
+  else
+  if (cmod && (code == 109 || code == 189)) { // Ctr -
+    evt.keyCode = 0;
+    evt.returnValue = false;
+
+    // блокировка IE-масштабирования немедленным возвратом 100%
+    try { m_shl.SendKeys("^0"); } catch(e) {} // LCtrl-0
+    return false;
+  }
+  else
+  if (cmod && (code == 48 || code == 96)) { // Ctr-0
+    evt.keyCode = 0;
+    evt.returnValue = false;
+
+    winAdjustSize();
+    return false;
+  }
+  else
+  if (code == 116) { // F5 - жесткое обновление
+    evt.keyCode = 0;
+    evt.returnValue = false;
+
+    var url = window.location.href.split('#')[0];
+    window.location.href = url + '#' + (new Date().getTime());
+    window.location.reload(true); // HTA Reset
+
+    return false;
+  }
+}
+
+</script>
+
+<!------------------------------------------------------------->
+<!-- Ты их нашел :) -->
+
+</head>
+<body>
+
+<!------------------------------------------------------------->
+<!-- Блок: Локализация -->
+
+<script language = "JScript">
+
+var m_langrus = true;
+var m_dicteng = null;
+
+var m_dictrus = {
+  "Сообщение" :
+    "Message",
+  "Чистка тегов в PGN-файле" :
+    "PGN: Tags cleaning",
+  "Форматирование партий в PGN-файле" :
+    "PGN: Compact formatting",
+  "Перемешивание партий в PGN-файле" :
+    "PGN: Games shuffling",
+  "Нормализация PGN-файла" :
+    "PGN: Games sorting",
+  "Исходный существующий PGN-файл:" :
+    "Original existing PGN-file:",
+  "Выбор..." :
+    "Select...",
+  "Итоговый перезаписываемый PGN-файл:" :
+    "The final rewritable PGN-file:",
+  "Выполнить" :
+    "Execute",
+  "Выход" :
+    "Exit",
+  "Укажите или введите имя файла..." :
+    "Specify or enter a file name...",
+  "Нужно выбирать файл формата .pgn" :
+    "Need to select a file in PGN-format",
+  "Необходимо определить имена файлов." :
+    "File names need to be defined.",
+  "Исходный файл должен иметь расширение .pgn" :
+    "The original file must have the extension .pgn",
+  "Пустой файл:\n" :
+    "Empty file:\n",
+  "Файл не найден:\n" :
+    "File not found:\n",
+  "Итоговый файл должен иметь расширение .pgn" :
+    "The final file must have the extension .pgn",
+  "Исходный и итоговый файлы не должны совпадать." :
+    "The original and final files must not be the same.",
+  "Не удалось выполнить команду:\n\n{0}\n\nКод ошибки: {1}" :
+    "Failed to execute command:\n\n{0}\n\nError code: {1}",
+  "Обработка успешно завершена!" :
+    "Processing completed successfully!",
+  "Не удалось открыть итоговый файл в Блокноте." :
+    "Unable to open the final file in Notepad.",
+  "Выберите папку для сохранения PGN-файла:" :
+    "Select a folder to save the PGN-file:"
+};
+
+function T(text) {
+  if (m_langrus) return text;
+  return m_dictrus[text] || text;
+}
+
+function lngMirror() {
+  if (m_dicteng) return;
+  m_dicteng = {};
+
+  for (var key in m_dictrus)
+  if (m_dictrus.hasOwnProperty(key))
+    m_dicteng[m_dictrus[key]] = key;
+}
+
+function lngToggle(rus) {
+  lngMirror();
+  m_langrus = rus;
+
+  winHide();
+
+  var dict = m_langrus ? m_dicteng : m_dictrus;
+  var tags = ["label", "button", "a"];
+
+  with (document) if (dict[title]) title = dict[title];
+  m_hint = dict[m_hint];
+
+  for (var t = 0; t < tags.length; ++t) {
+    var items = document.getElementsByTagName(tags[t]);
+
+    for (var i = items.length - 1; i >= 0; --i) {
+      var ctl = items[i];
+
+      var text = ctl.innerHTML;
+      if (!text) continue;
+
+      text = text.replace(/^\s+|\s+$/g, "");
+      text = text.replace(/\u00a0/g, " ");
+      text = text.replace(/\s+/g, " ");
+      text = text.replace(/<br\s*\/?>/gi, "<br>");
+
+      if (!dict[text]) continue;
+      ctl.innerHTML = dict[text];
+    }
+  }
+
+  winAdjustSize();
+}
+
+</script>
+
+<!------------------------------------------------------------->
+<!-- Блок: Конфигурация -->
+
+<script language = "JScript">
+
+function cfgRead() {
+  m_langrus = regIs1251();
+
+  if (m_alone || !m_fso.FileExists(m_config)) return;
+  var lng = "";
+
+  try {
+    var inp = m_fso.OpenTextFile(m_config, 1, false, 0);
+
+    if (!inp.AtEndOfStream) {
+      inp.ReadLine(); // пропуск первой строки
+      lng = inp.ReadLine();
+    }
+
+    inp.Close();
+  } catch(e) {}
+
+  if (lng.indexOf("english") != -1) m_langrus = false; else
+  if (lng.indexOf("russian") != -1) m_langrus = true;
+}
+
+</script>
+
+<!------------------------------------------------------------->
+<!-- Прикладные функции -->
+
+<script language = "JScript">
+
+function initHolder(id) {
+  var ctl = document.getElementById(id);
+  if (ctl.value != "") return;
+
+  ctl.className = "gray";
+  ctl.value = m_hint;
+}
+
+function onFocus(id) {
+  var ctl = document.getElementById(id);
+
+  if (ctl.value == m_hint) {
+    ctl.className = "";
+    ctl.value = "";
+  }
+  else
+    ctl.select();
+}
+
+function onBlur(id) {
+  var ctl = document.getElementById(id);
+  var val = ctl.value;
+
+  if (val == "") {
+    ctl.className = "gray";
+    ctl.value = m_hint;
+    return;
+  }
+
+  if (id != "ctlOut" || val == m_hint) return;
+
+  var valInp = document.getElementById("ctlInp").value;
+  if (valInp == "" || valInp == m_hint) return;
+
+  if ((val.indexOf(":") == -1) && (val.indexOf("\\") == -1))
+    val = m_fso.GetParentFolderName(valInp) + "\\" + val;
+
+  var ext = m_fso.GetExtensionName(val).toLowerCase();
+  if (ext == "") {
+    if (val.substr(val.length - 1) != ".")
+      val += ".pgn";
+    else
+      val += "pgn";
+  }
+
+  ctl.className = "";
+  ctl.value = val;
+
+  m_easy = false;
+}
+
+function onSelect(id) {
+  document.activeElement.blur();
+
+  if (id == "ctlInp") {
+    var ctlFile = document.getElementById("ctlFile");
+    ctlFile.click();
+
+    var val = ctlFile.value;
+    if (val == "") return;
+
+    var ext = m_fso.GetExtensionName(val).toLowerCase();
+    if (ext == "pgn") {
+      var ctl = document.getElementById("ctlInp");
+
+      ctl.className = "";
+      ctl.value = val;
+
+      if (m_easy) {
+        var path = m_fso.GetParentFolderName(val);
+
+        ctl = document.getElementById("ctlOut");
+        ctl.className = "";
+        ctl.value = path + "\\result.pgn";
+
+        m_easy = false;
+      }
+    }
+    else {
+      dlgMsg(T("Нужно выбирать файл формата .pgn"));
+      ctlFile.value = "";
+    }
+  }
+  else
+  if (id == "ctlOut") {
+    var text = T("Выберите папку для сохранения PGN-файла:");
+    var path = dlgFolder(text);
+
+    if (!path) return;
+
+    var ctl = document.getElementById("ctlOut");
+    ctl.className = "";
+    ctl.value = path + "result.pgn";
+
+    m_easy = false;
+  }
+}
+
+function doScript() {
+  document.activeElement.blur();
+
+  var valInp = document.getElementById("ctlInp").value;
+  var valOut = document.getElementById("ctlOut").value;
+
+  if (valInp == m_hint) valInp = "";
+  if (valOut == m_hint) valOut = "";
+
+  if (valInp == "" || valOut == "") {
+    dlgMsg(T("Необходимо определить имена файлов."));
+    return;
+  }
+
+  if (m_fso.GetExtensionName(valInp).toLowerCase() != "pgn") {
+    dlgMsg(T("Исходный файл должен иметь расширение .pgn"));
+    return;
+  }
+
+  if (m_fso.FileExists(valInp)) {
+    var file = m_fso.GetFile(valInp);
+
+    if (file.Size < 10) { //  < [Event ""]
+      dlgMsg(T("Пустой файл:\n") + valInp);
+      return;
+    }
+  }
+  else {
+    dlgMsg(T("Файл не найден:\n") + valInp);
+    return;
+  }
+
+  if (m_fso.GetExtensionName(valOut).toLowerCase() != "pgn") {
+    dlgMsg(T("Итоговый файл должен иметь расширение .pgn"));
+    return;
+  }
+
+  if (valInp.toLowerCase() == valOut.toLowerCase()) {
+    dlgMsg(T("Исходный и итоговый файлы не должны совпадать."));
+    return;
+  }
+
+  var full = m_path + "\\" + m_name;
+
+  if (!m_fso.FileExists(full)) {
+    dlgMsg(T("Файл не найден:\n") + full);
+    window.close();
+    return;
+  }
+
+  if (m_args[1] != "luaClean") {
+    full = m_path + "\\utils\\luaClean.lua";
+
+    if (!m_fso.FileExists(full)) {
+      dlgMsg(T("Файл не найден:\n") + full);
+      window.close();
+      return;
+    }
+  }
+
+  valInp = txtQuote(valInp);
+  valOut = txtQuote(valOut);
+
+  var cmd =
+    'cmd /u /c "'                                   +
+    'cd /d ' + txtQuote(m_path)                     +
+    ' && .\\bin\\lua5.1.bin .\\utils\\luaClean.lua' +
+    ' < '  + valInp;
+
+  if (m_args[1] != "luaClean")
+    cmd += ' | '  + '.\\bin\\lua5.1.bin ' + '.\\' + m_name;
+
+  cmd += ' > '  + valOut + '"';
+  var ret = m_shl.Run(cmd, 0, true);
+
+  if (ret != 0) {
+    var fmt = T(
+      "Не удалось выполнить команду:\n\n{0}\n\n" +
+      "Код ошибки: {1}");
+
+    dlgMsg(txtFormat(fmt, cmd, ret));
+    window.close();
+    return;
+  }
+  else
+    dlgMsg(T("Обработка успешно завершена!"));
+
+  var eid = "VOLATILE", vid = "pgnS-retval";
+
+  try {
+    m_shl.Environment(eid).Remove(vid);
+  } catch(e) {}
+
+  if (m_argc < 3) return;
+  var ret = false;
+
+  try {
+    m_shl.Run("notepad.exe " + valOut, 3, false);
+    ret = true;
+  } catch(e) {}
+
+  if (!ret) {
+    dlgMsg(T("Не удалось открыть итоговый файл в Блокноте."));
+    self.close();
+  }
+
+  m_shl.AppActivate(m_fso.GetBaseName(valOut));
+  m_shl.Environment(eid).Item(vid) = "OK";
+  self.close();
+}
+
+</script>
+
+<!------------------------------------------------------------->
+<!-- Прикладная инициализация -->
+
+<script language = "JScript">
+
+var m_alone = false;
+var m_utils = {
+  luaClean:     "Чистка тегов в PGN-файле",
+  luaFormat:    "Форматирование партий в PGN-файле",
+  luaShuffle:   "Перемешивание партий в PGN-файле",
+  luaNormalize: "Нормализация PGN-файла"
+};
+
+if ((m_argc < 2) || (m_utils[m_args[1]] === undefined))
+  m_args[1] = "luaClean", m_alone = true;
+
+var m_config = m_path + "\\pgnService.cfg";
+var m_name   = "utils\\" + m_args[1] + ".lua"
+var m_hint   = "Укажите или введите имя файла...";
+var m_easy   = true;
+
+window.onload = function() {
+  window.onerror = winOnError;
+  cfgRead();
+
+  document.title = m_utils[m_args[1]];
+
+  document.onmousewheel = docMouseWheel;
+  document.onkeydown = docKeyDown;
+
+  if (m_langrus) winAdjustSize(); else lngToggle(false);
+  document.activeElement.blur();
+
+  initHolder("ctlInp");
+  initHolder("ctlOut");
+};
+
+</script>
+
+<!------------------------------------------------------------->
+<!-- Стили интерфейса -->
+
+<style>
+  * {
+    font-family: "Tahoma", sans-serif !important;
+    font-size: 9pt;
+    font-weight: normal;
+    font-style: normal;
+    font-variant: normal;
+    line-height: normal;
+  }
+  body {
+    color: ButtonText;
+    background-color: ButtonFace;
+    margin: 12pt;
+    padding: 0;
+  }
+  table {
+    width: 100%;
+    border: none;
+    border-collapse: collapse;
+  }
+  th, td {
+    border: none;
+    padding: 0;
+    vertical-align: top;
+  }
+  button {
+    width: 68pt;
+    height: 21pt;
+    margin: 0;
+    padding: 0;
+  }
+  input[type="text"] {
+    box-sizing: border-box;
+    width: 68pt;
+    height: 20pt;
+    line-height: normal;
+    margin: 0;
+    padding: 3pt 4pt 3pt 4pt;
+    border: 1px solid #ccc;
+  }
+  .gray {
+    color: gray;
+  }
+  /* для отладки верстки удалить 2 последних символа *//*
+  table, th, td {
+    outline: 1px solid black !important;
+  }
+  /* для отладки */
+</style>
+
+<!------------------------------------------------------------->
+<!-- Элементы интерфейса -->
+
+<input type = "file" id = "ctlFile" style = "display:none">
+
+<table>
+  <tr style = "height:17pt;">
+    <td colspan = "2" style = "padding-top:2pt;">
+      <label>
+        Исходный существующий PGN-файл:
+      </label>
+    </td>
+  </tr>
+
+  <tr style = "height:23pt;">
+    <td>
+      <input type = "text"
+        id      = "ctlInp"
+        style   = "width:100%;margin-top:1pt;"
+        onfocus = "onFocus('ctlInp')"
+        onblur  = "onBlur ('ctlInp')">
+    </td>
+
+    <td style = "width:75pt;text-align:right;">
+      <button onclick = "onSelect('ctlInp')">
+        Выбор...
+      </button>
+    </td>
+  </tr>
+
+  <tr style = "height:20pt;">
+    <td colspan = "2" style = "padding-top:5pt;">
+      <label>
+        Итоговый перезаписываемый PGN-файл:
+      </label>
+    </td>
+  </tr>
+
+  <tr style = "height:24pt;">
+    <td>
+      <input type = "text"
+        id      = "ctlOut"
+        style   = "width:100%;margin-top:1pt;"
+        onfocus = "onFocus('ctlOut')"
+        onblur  = "onBlur ('ctlOut')">
+    </td>
+
+    <td style = "text-align:right;">
+      <button onclick = "onSelect('ctlOut')">
+        Выбор...
+      </button>
+    </td>
+  </tr>
+
+  <tr style = "height:20pt;">
+    <td colspan = "2"><hr style = "margin-top:8pt;"></td>
+  </tr>
+
+  <tr>
+    <td style = "padding-bottom:4pt;">
+      <button
+        id      = "btnExec"
+        onclick = "doScript()">
+          Выполнить
+      </button>
+    </td>
+
+    <td style = "padding-bottom:4pt;text-align:right;">
+      <button onclick = "window.close()">
+        Выход
+      </button>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

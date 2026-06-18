@@ -1,0 +1,1559 @@
+<!doctype html>
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=8">
+<meta http-equiv="MSThemeCompatible" content="yes">
+<meta name="author" content="(С) 2026 Владимир Какоткин">
+
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
+<meta http-equiv="Expires" content="0">
+
+<title>pgnService - Справка</title>
+
+<!------------------------------------------------------------->
+<!-- Блок: Первичная инициализация -->
+
+<script language = "JScript">
+
+var m_width = 800, m_height = 500;
+
+function winHide() {
+  window.moveTo(-3000, -3000);
+}
+
+winHide();
+window.resizeTo(m_width, m_height);
+
+if (!document.documentMode || (document.documentMode != 8)) {
+  var msg =
+    "Это HTML-приложение требует поддержки режима IE=8.\n" +
+    "This HTML Application requires support for IE=8 mode.";
+
+  alert(msg);
+  self.close();
+}
+
+window.onerror = function(msg, url, num) {
+  var title = "Произошла ошибка во время работы приложения.\n";
+
+  // сработает уже на дальнейшей проверке синтаксиса
+  alert(title + "Описание: " + msg + "\nСтрока: #" + num);
+  self.close();
+};
+
+</script>
+
+<!------------------------------------------------------------->
+<!-- Блок: Глобальные свойства -->
+
+<hta:application
+  Id              = "HTA"
+  ApplicationName = "!clickme"
+  Icon            = "pgnService.ico"
+  Border          = "thick"
+  BorderStyle     = "normal"
+  Caption         = "yes"
+  MaximizeButton  = "yes"
+  MinimizeButton  = "yes"
+  Scroll          = "no"
+  Selection       = "no"
+  SingleInstance  = "yes"
+  ShowInTaskbar   = "yes"
+  SysMenu         = "yes"
+  WindowState     = "normal"
+/>
+
+<style>
+  html, body {
+    overflow: hidden;
+  }
+</style>
+
+<!------------------------------------------------------------->
+<!-- Блок: Системные переменные -->
+
+<script language = "JScript">
+
+var m_app = new ActiveXObject("Shell.Application");
+var m_shl = new ActiveXObject("WScript.Shell");
+
+</script>
+
+<!------------------------------------------------------------->
+<!-- Блок: Системная библиотека -->
+
+<script language = "JScript">
+
+function winCenter() {
+  window.moveTo(
+    (screen.width  - m_width)  / 2,
+    (screen.height - m_height) / 2);
+}
+
+function winIsMaximized() {
+  var doc = window.document.documentElement;
+  var cliw = doc.clientWidth;
+  var clih = doc.clientHeight;
+
+  var scrw = screen.availWidth;
+  var scrh = screen.availHeight;
+
+  var ret =
+    (Math.abs(scrw - cliw) < 32) &&
+    (Math.abs(scrh - clih) < 32);
+
+  return ret;
+}
+
+function txtQuote(text) {
+  if (!text) return '""';
+
+  var pure = text.replace(/^"+|"+$/g, "");
+  pure = pure.replace(/"/g, '""');
+
+  return '"' + pure + '"';
+}
+
+function dlgMsg(text) {
+  text = text.replace(/&/g,  "&amp;");
+  text = text.replace(/"/g,  "&quot;");
+  text = text.replace(/'/g,  "&#39;");
+  text = text.replace(/</g,  "&lt;");
+  text = text.replace(/>/g,  "&gt;");
+  text = text.replace(/\\/g, "\\\\");
+  text = text.replace(/  /g, " &nbsp;");
+  text = text.replace(/(\r\n|\n|\r)/g, "<br>");
+
+  var div = document.createElement("div");
+
+  div.style.font       = "9pt Tahoma";
+  div.style.lineHeight = "140%";
+  div.style.width      = "192pt";
+  div.style.position   = "absolute";
+  div.style.visibility = "hidden";
+  div.innerHTML        = text;
+
+  document.body.appendChild(div);
+  var htxt = div.scrollHeight;
+  document.body.removeChild(div);
+
+  var hdlg = ((htxt > 32) ? htxt : 32) + 70;
+  hdlg = ((hdlg * 0.75) | 0) + "pt";
+
+  var title = "Сообщение";
+
+  var html =
+    "<html><head>"                                              +
+    "<title>" + title + "</title>"                              +
+    "<meta http-equiv='content-type'"                           +
+    "  content='text/html;charset=utf-8'>"                      +
+    "<meta http-equiv='MSThemeCompatible' content='Yes'>"       +
+    "<style>"                                                   +
+    "  html,body{"                                              +
+    "    background-color:ButtonFace;color:ButtonText;"         +
+    "    margin:0;padding:9pt;overflow:hidden}"                 +
+    "  td,button{font:9pt Tahoma}"                              +
+    "  button{width:68pt;height:20pt;}"                         +
+    " .btnrect{"                                                +
+    "    position:absolute;left:9pt;bottom:14pt;"               +
+    "    width:100%;text-align:center}"                         +
+    "</style>"                                                  +
+    "</head><body>"                                             +
+    "<table"                                                    +
+    "  cellpadding='0' cellspacing='0' style='width:100%'>"     +
+    "  <tr>"                                                    +
+    "    <td"                                                   +
+    "      style='position:relative;width:42pt;height:34pt;"    +
+    "      text-align:left;vertical-align:middle;"              +
+    "      background-color:transparent;padding:0;'>"           +
+    "      <font face='Webdings'"                               +
+    "        style='color:#FFFFFF;font-size:32pt;"              +
+    "        line-height:34pt;display:block;width:34pt;"        +
+    "        text-align:center;background-color:transparent;"   +
+    "        margin:0;padding:0;'>n</font>"                     +
+    "      <font face='Webdings'"                               +
+    "        style='color:#3399FF;font-size:32pt;"              +
+    "        line-height:34pt;display:block;width:34pt;"        +
+    "        text-align:center;background-color:transparent;"   +
+    "        position:absolute;top:1pt;left:0;height:100%;"     +
+    "        margin:0;padding:0;'>i</font>"                     +
+    "    </td>"                                                 +
+    "    <td style='line-height:140%;text-align:left;"          +
+    "      vertical-align:top;'>"                        + text +
+    "    </td>"                                                 +
+    "  </tr>"                                                   +
+    "</table>"                                                  +
+    "<div class='btnrect'>"                                     +
+    "  <button onclick='window.close()'>OK</button>"            +
+    "</div>"                                                    +
+    "<s" + "cript>"                                             +
+    "  window.document.onkeydown=function(){"                   +
+    "    if(window.event.keyCode==27)window.close();};"         +
+    "</s" + "cript>"                                            +
+    "</body></html>";
+
+  var opts =
+    "dialogWidth:263pt;dialogHeight:" + hdlg + ";center:yes;" +
+    "resizable:no;scroll:no;status:no;help:no;";
+
+  html = "javascript:document.write(\"" + html + "\")";
+  window.showModalDialog(html, window, opts);
+}
+
+function winOnError(msg, url, num) {
+  var title = "Произошла ошибка во время работы приложения.\n";
+
+  try {
+    var req = new ActiveXObject("MSXML2.XMLHTTP");
+    req.open("GET", url, false);
+    req.send();
+
+    if ((req.status == 200) || (req.status == 0)) {
+      var list = req.responseText.split(/\r?\n/);
+      var item = list[num - 1];
+
+      var log =
+        title                     + "\n"   +
+        "Описание:\n    "   + msg + "\n"   +
+        "Файл (URL):\n    " + url + "\n"   +
+        "Cтрока: #"         + num + "\n\n" +
+        "Текст строки (но это неточно):\n" +
+        "- - -\n"                          +
+        item + "\n"                        +
+        "- - -";
+
+      alert(log); // dlgMsg - нельзя
+    }
+  } catch(e) {
+    alert(title + "Описание: " + msg + "\nСтрока: #" + num);
+  }
+
+  self.close();
+};
+
+function docMouseWheel() {
+  var evt = window.event, cmod = evt.ctrlKey;
+  if (!cmod) return;
+
+  // блокировка IE-масштабирования
+  evt.returnValue = false;
+  return false;
+}
+
+function docOnClick() {
+  var tag = window.event.srcElement;
+  while (tag && tag.tagName.toUpperCase() != "A")
+    tag = tag.parentElement;
+
+  if (!tag) return true;
+
+  var atr = tag.getAttributeNode("onclick");
+  if (atr && atr.specified) return true;
+
+  atr = tag.getAttribute("href");
+  if (!atr || atr == "#") return true;
+
+  if (atr.indexOf("#") == 0) {
+    atr = atr.substring(1);
+    tag =
+      document.getElementById(atr) ||
+      document.getElementsByName(atr);
+
+    if (!tag || (("length" in tag) && (tag.length == 0))) {
+      dlgMsg("Не удалось совершить переход на:\n" + atr);
+      return false;
+    }
+
+    return true;
+  }
+  else {
+    try {
+      m_shl.Run(txtQuote(tag.href), 1, false);
+    } catch(e) {
+      dlgMsg("Не удалось найти файл или адрес:\n" + tag.href);
+    }
+  }
+
+  return false;
+}
+
+</script>
+
+<!------------------------------------------------------------->
+<!-- Ты их нашел :) -->
+
+</head>
+<body>
+
+<!------------------------------------------------------------->
+<!-- Блок: Живой поиск -->
+
+<style>
+  span.srhlink {
+    color: #000;
+    background-color: #ff0;
+    font-size: inherit;
+    font-weight: bold;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  span.srhlink:hover {
+    text-decoration: underline;
+  }
+</style>
+
+<script language = "JScript">
+
+var SRH_HIBRD = "5pt solid #00f";
+var SRH_HIPAD = "8pt";
+var m_srhtop  = 25;
+var m_srhbase = [];   // запись: type, node, text, lbrd, lpad
+var m_srhbox  = null; // контейнер c тегами
+var m_srhctl  = null; // поле ввода текста для поиска
+var m_srhold  = "";
+
+function srhInit(box, inp) {
+  if (m_srhctl) return;
+
+  var ctl = document.getElementById(box);
+  if (ctl && document.getElementById(inp))
+    m_srhbox = box, m_srhctl = inp;
+  else
+    return;
+
+  var items = ctl.childNodes;
+
+  // предварительный сбор тегов и никакой магии
+  for (var i = 0; i < items.length; ++i) {
+    var child = items[i], txt = "", rec;
+
+    if (child.nodeType == 1) { // нормальные видимые теги
+      var name = child.tagName.toUpperCase();
+      var id = child.id.toUpperCase();
+
+      // адаптация: здесь можно расширить поиск
+      var use =
+        (name == "H1") || (name == "H2") || (name == "H3") ||
+        (name == "P")  || (name == "DIV");
+
+      // адаптация: здесь можно ограничить
+      var ign = (id == "BANNER") || (id == "FOOTER");
+
+      txt = child.innerHTML.replace(/^\s+|\s+$/g, '');
+      if ((use && !ign) && (txt.length > 0)) {
+        var pleft =
+          child.style.paddingLeft ||
+          child.currentStyle.paddingLeft;
+
+        var bleft = child.style.borderLeft;
+
+        if (!bleft) { // ньюансы IE8
+          var cur = child.currentStyle;
+          var bst = cur.borderLeftStyle;
+
+          // сборка правильного инлайнового стиля
+          if (bst && bst != "none") {
+            bleft =
+              cur.borderLeftWidth + " " + bst + " " +
+              cur.borderLeftColor;
+          }
+        }
+
+        rec = {
+          type: 1,
+          node: child,
+          text: child.innerHTML,
+          lbrd: bleft,
+          lpad: pleft
+        };
+
+        m_srhbase.push(rec);
+      }
+      else
+        m_srhbase.push({ type: -1, node: child }); // левые теги
+    }
+    else
+    if (child.nodeType == 3) { // сырой текст без тегов
+      txt = child.nodeValue.replace(/^\s+|\s+$/g, '');
+      if (txt.length < 1) continue;
+
+      rec = { type: 3, node: child, text: child.nodeValue };
+      m_srhbase.push(rec);
+    }
+  }
+}
+
+function srhLive() {
+  if (!m_srhctl) return;
+
+  var ctl = document.getElementById(m_srhctl);
+  var rng = document.body.createTextRange();
+  var smpl = ctl.value.toLowerCase();
+  var live = smpl.length > 1;
+
+  if (m_srhold == smpl) return;
+  m_srhold = smpl;
+
+  for (var i = 0; i < m_srhbase.length; ++i) {
+    var rec = m_srhbase[i];
+
+    if (rec.type == -1) { // левые теги
+      rec.node.style.display = live ? "none" : "";
+      continue;
+    }
+    else
+    if (rec.type == 3) { // сырой текст
+      rec.node.nodeValue = live ? "" : rec.text;
+      continue;
+    }
+
+    // попутное восстановление в инлайны
+    rec.node.style.borderLeft  = rec.lbrd;
+    rec.node.style.paddingLeft = rec.lpad;
+    rec.node.style.display     = "";
+    rec.node.innerHTML         = rec.text;
+
+    if (!live) continue;
+
+    var txt = rec.node.innerText || rec.node.textContent;
+    var idx = txt.toLowerCase().indexOf(smpl);
+
+    if (idx == -1) {
+      rec.node.style.display = "none"; // скрыть неподходящий тег
+      continue;
+    }
+
+    // индикатор для найденного блока
+    rec.node.style.borderLeft  = SRH_HIBRD;
+    rec.node.style.paddingLeft = SRH_HIPAD;
+
+    // вклейка подсвеченного текста как псевдоссылки для перехода
+    rng.moveToElementText(rec.node);
+
+    while (rng.findText(smpl, 0, 0)) {
+      var lnk =
+        "<span" +
+        " class   = 'srhlink'"  +
+        " onclick = 'srhClick(" + i + ")'>" +
+        rng.text +
+        "</span>";
+
+      rng.pasteHTML(lnk);
+      rng.collapse(false);
+    }
+  }
+
+  ctl = document.getElementById(m_srhbox);
+  ctl.scrollTop = 0;
+}
+
+function srhClear(fcs) {
+  if (!m_srhctl) return;
+  m_srhold = "";
+
+  document.getElementById(m_srhctl).value = "";
+  if (fcs) document.getElementById(fcs).focus();
+
+  for (var i = 0; i < m_srhbase.length; ++i) {
+    var rec = m_srhbase[i];
+
+    if (rec.type == 1) { // нормальные теги
+      rec.node.style.backgroundColor = "";
+
+      rec.node.innerHTML         = rec.text;
+      rec.node.style.borderLeft  = rec.lbrd;
+      rec.node.style.paddingLeft = rec.lpad;
+    }
+    else
+    if (rec.type == 3) { // сырой текст
+      rec.node.nodeValue = rec.text;
+      continue;
+    }
+
+    rec.node.style.display = ""; // и левые тоже покажутся
+  }
+}
+
+function srhClick(idx) {
+  if (!m_srhctl) return;
+  srhClear(m_srhctl);
+
+  var tag = m_srhbase[idx].node;
+  if (!tag) return;
+
+  var ctl = document.getElementById(m_srhbox);
+  ctl.scrollTop = tag.offsetTop - m_srhtop;
+}
+
+function srhClickFirst() {
+  if (!m_srhctl) return;
+
+  var ctl = document.getElementById(m_srhctl);
+  if (ctl.value.length < 1) return;
+
+  var idx = -1;
+
+  for (var i = 0; (i < m_srhbase.length) && (idx == -1); ++i)
+  if (m_srhbase[i].node.style.display != "none")
+    idx = i;
+
+  if (idx != -1) srhClick(idx);
+}
+
+</script>
+
+<!------------------------------------------------------------->
+<!-- Блок: История -->
+
+<script language = "JScript">
+
+var m_hstlock = true;
+var m_hstbase = [];
+
+function hstReset() {
+  m_hstlock = false;
+  m_hstbase = ["#"];
+}
+
+function hstAdd(hash) {
+  if (!hash) return;
+
+  if (m_hstbase[m_hstbase.length - 1] != hash)
+    m_hstbase.push(hash);
+}
+
+function hstBack() {
+  m_hstlock = true;
+
+  if (m_hstbase.length > 1)
+    m_hstbase.pop();
+
+  hash = m_hstbase[m_hstbase.length - 1];
+  if (hash != "#")
+    window.location.hash = hash;
+  else
+    jumpTop(); // адаптация: т.к. # это контекст всей страницы
+
+  m_hstlock = false;
+}
+
+function hstTracker() {
+  if (m_hstlock) return;
+
+  var hash = window.location.hash;
+  if (hash) hstAdd(hash);
+};
+
+function hstInit() {
+  hstReset();
+  window.onhashchange = hstTracker;
+}
+
+</script>
+
+<!------------------------------------------------------------->
+<!-- Блок: Масштабирование тега -->
+
+<script language = "JScript">
+
+var m_zmtmlt = 1.0, m_zmtmin = 0.5, m_zmtmax = 1.5;
+var m_zmtorg = 10.0, m_zmtctl = null;
+
+function zmtInit(box, min, max) {
+  if (m_zmtctl) return;
+
+  // box - это контейнер, у детей размер шрифтов через em
+  var ctl = document.getElementById(box);
+  if (!ctl) return;
+
+  if (min > max) max = [min, min = max][0];
+  if ((min > 1.0) || (max < 1.0)) return;
+
+  m_zmtctl = box, m_zmtmin = min, m_zmtmax = max;
+
+  var txt =
+    ctl.style.fontSize                              ||
+    (ctl.currentStyle && ctl.currentStyle.fontSize) ||
+    "10.0pt";
+
+  txt = txt.replace(",", ".").replace(/[^\d\.]/g, "");
+  m_zmtorg = parseFloat(txt);
+}
+
+function zmtApply() {
+  if (!m_zmtctl) return;
+
+  var ctl = document.getElementById(m_zmtctl);
+  var size = m_zmtorg * m_zmtmlt;
+  size = (Math.round(size * 10) / 10) + "pt";
+
+  ctl.style.fontSize = size; // инлайновый размер
+
+  // ньюансы IE8
+  var list = ctl.getElementsByTagName("th");
+  for (var i = 0; i < list.length; ++i)
+    list[i].style.fontSize = size;
+
+  list = ctl.getElementsByTagName("td");
+  for (var i = 0; i < list.length; ++i)
+    list[i].style.fontSize = size;
+}
+
+function zmtInc() {
+  if (!m_zmtctl) return;
+
+  m_zmtmlt += 0.1;
+  m_zmtmlt = Math.min(Math.max(m_zmtmlt, m_zmtmin), m_zmtmax);
+
+  m_zmtmlt = Math.round(m_zmtmlt * 10) / 10;
+  zmtApply();
+}
+
+function zmtDec() {
+  if (!m_zmtctl) return;
+
+  m_zmtmlt -= 0.1;
+  m_zmtmlt = Math.min(Math.max(m_zmtmlt, m_zmtmin), m_zmtmax);
+
+  m_zmtmlt = Math.round(m_zmtmlt * 10) / 10;
+  zmtApply();
+}
+
+function zmtReset() {
+  if (!m_zmtctl) return;
+
+  m_zmtmlt = 1.0;
+  zmtApply();
+}
+
+function zmtWheel() {
+  if (!m_zmtctl) return;
+
+  var evt = window.event, cmod = evt.ctrlKey;
+  if (!cmod) return;
+
+  (evt.wheelDelta > 0) ? zmtInc() : zmtDec();
+}
+
+</script>
+
+<!------------------------------------------------------------->
+<!-- Прикладные функции -->
+
+<script language = "JScript">
+
+var RSZ_MINW = 500, RSZ_MINH = 400;
+var m_rsztick = null;
+
+function onResize() {
+  clearTimeout(m_rsztick);
+
+  m_rsztick = setTimeout(function() {
+    var de = document.documentElement;
+    var bd = document.body;
+
+    var cliw = de.clientWidth  || bd.clientWidth;
+    var clih = de.clientHeight || bd.clientHeight;
+
+    var extw = window.outerWidth  || (cliw + 16);
+    var exth = window.outerHeight || (clih + 39);
+    var need = false;
+
+    if (cliw < RSZ_MINW) {
+      need = true;
+      extw =
+        window.outerWidth                     ?
+        (RSZ_MINW + window.outerWidth - cliw) :
+        (RSZ_MINW + 16);
+    }
+
+    if (clih < RSZ_MINH) {
+      need = true;
+      exth =
+        window.outerHeight                     ?
+        (RSZ_MINH + window.outerHeight - clih) :
+        (RSZ_MINH + 39);
+    }
+
+    if (need) window.resizeTo(extw, exth);
+  }, 50);
+}
+
+function onKeyDown() {
+  var evt  = window.event, code = evt.keyCode;
+  var cmod = evt.ctrlKey,  amod = evt.altKey;
+  var left = evt.ctrlLeft, fcs  = evt.srcElement;
+
+  var quit =
+    (amod && (code == 88))  || // Alt-X
+    (cmod && (code == 81))  || // Ctlr-Q
+    (cmod && (code == 115));   // Ctlr-F4
+
+  if (quit) { self.close(); return; }
+
+  if (cmod && (code == 107 || code == 187)) { // Ctr +
+    evt.keyCode = 0;
+    evt.returnValue = false;
+
+    // блокировка IE-масштабирования немедленным возвратом 100%
+    try { m_shl.SendKeys("^0"); } catch(e) {} // LCtrl-0
+    if (left) return false;
+
+    zmtInc();
+    return false;
+  }
+  else
+  if (cmod && (code == 109 || code == 189)) { // Ctr -
+    evt.keyCode = 0;
+    evt.returnValue = false;
+
+    // блокировка IE-масштабирования немедленным возвратом 100%
+    try { m_shl.SendKeys("^0"); } catch(e) {} // LCtrl-0
+    if (left) return false;
+
+    zmtDec();
+    return false;
+  }
+  else
+  if (cmod && (code == 48 || code == 96)) { // Ctr-0
+    evt.keyCode = 0;
+    evt.returnValue = false;
+
+    // чтобы не спотыкаться о свой же LCtrl-0
+    if (left) return false;
+
+    zmtReset();
+    return false;
+  }
+  else
+  if (code == 116) { // F5 - жесткое обновление
+    evt.keyCode = 0;
+    evt.returnValue = false;
+
+    var url = window.location.href.split('#')[0];
+    window.location.href = url + '#' + (new Date().getTime());
+    window.location.reload(true); // HTA Reset
+
+    return false;
+  }
+  else
+  if (code == 27) { // Esc - Выход
+    evt.keyCode = 0;
+    evt.returnValue = false;
+
+    var ctl = document.getElementById("ctlInp");
+    if (ctl && ctl.value.length > 0)
+      srhClear("ctlInp");
+    else
+      self.close();
+
+    return false;
+  }
+  else
+  if (code == 122) { // F11 - развернуть/восстановить
+    evt.keyCode = 0;
+    evt.returnValue = false;
+
+    if (winIsMaximized()) {
+      m_shl.SendKeys("%( )"); // Alt-Space - оконное меню
+      m_shl.SendKeys("{ENTER}");
+    }
+    else {
+      m_shl.SendKeys("%( )");
+      m_shl.SendKeys("{UP}{UP}{ENTER}");
+    }
+
+    return false;
+  }
+  else
+  if (code == 8) { // Backspace - переход назад по истории
+    if ((fcs.id != "ctlInp") || (fcs.value.length < 1)) {
+      evt.keyCode = 0;
+      evt.returnValue = false;
+
+      hstBack();
+      return false;
+    }
+  }
+  else
+  if (code == 13) { // Enter
+    if ((fcs.id == "ctlInp") && (fcs.value.length > 0)) {
+      evt.keyCode = 0;
+      evt.returnValue = false;
+
+      srhClickFirst();
+      return false;
+    }
+  }
+  else
+  if (/^(33|34|35|36|38|40)$/.test(code)) { // кроме Left и Right
+    var leave = (fcs.id == "ctlInp") && (fcs.value.length < 1);
+    if (leave) document.getElementById("content").focus();
+  }
+  else
+  if (!cmod && !amod)
+  {
+    var mix = // буквы и цифры
+      (code >= 48 && code <= 90) ||
+      (code >= 96 && code <= 105);
+
+    if (mix && (fcs.id != "ctlInp"))
+      document.getElementById("ctlInp").focus();
+  }
+}
+
+function jumpTop(fcs) {
+  srhClear();
+  hstAdd("#");
+
+  var ctl = document.getElementById("content");
+  if (!ctl) return;
+
+  ctl.scrollTop = 0;
+
+  ctl = document.getElementById(fcs);
+  if (ctl) ctl.focus();
+}
+
+function openRU64() {
+  var lnk = "ru64.sibhost.ru";
+  m_app.ShellExecute("http://" + lnk, "", "", "open", 1);
+}
+
+function openWiki() {
+  var lnk = "ru.wikipedia.org/wiki/Portable_Game_Notation";
+  m_app.ShellExecute("https://" + lnk, "", "", "open", 1);
+}
+
+</script>
+
+<!------------------------------------------------------------->
+<!-- Прикладная инициализация -->
+
+<script language = "JScript">
+
+window.onload = function() {
+  window.onerror = winOnError;
+
+  srhInit("content", "ctlInp");
+  zmtInit("content", 0.6, 2.5);
+  hstInit();
+
+  document.getElementById("content").
+    attachEvent("onmousewheel", zmtWheel); // адаптация
+
+  document.onclick = docOnClick;
+  document.onmousewheel = docMouseWheel;
+  document.onkeydown = onKeyDown;
+
+  window.onresize = onResize;
+  winCenter();
+
+  document.getElementById("ctlInp").focus();
+};
+
+</script>
+
+<!------------------------------------------------------------->
+<!-- Стили интерфейса -->
+
+<style>
+  * {
+    font-family: "Tahoma", sans-serif;
+    font-size: 10pt;
+    font-weight: normal;
+    font-style: normal;
+    font-variant: normal;
+    line-height: normal;
+  }
+  body {
+    color: #333;
+    background-color: #fff;
+    margin: 0;
+    padding: 0;
+  }
+  #header {
+    background-color: #e57373;
+    box-sizing: border-box;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 38pt;
+    border-bottom: 2px solid #878e90;
+    overflow: hidden;
+    z-index: 1000;
+  }
+  #menu {
+    background-color: #80deea;
+    box-sizing: border-box;
+    position: absolute;
+    left: 0;
+    top: 38pt;
+    bottom: 0;
+    width: 150pt;
+    border-right: 2px solid #878e90;
+    padding: 0 12pt;
+    overflow: hidden;
+  }
+  #menu h1 {
+    font-size: 10pt;
+    font-weight: bold;
+    padding: 0;
+    margin-top: 8pt;
+    margin-bottom: 5pt;
+    text-transform: uppercase;
+  }
+  #menu ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  #menu li {
+    font-size: 10pt;
+    line-height: 1.1;
+    text-indent: -12pt;
+    margin-left: 12pt;
+    margin-bottom: 4pt;
+  }
+  #menu a {
+    color: #34c !important;
+    font-size: 10pt;
+    font-weight: bold;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  #content {
+    background-color: #fff;
+    box-sizing: border-box;
+    position: absolute;
+    font-size: 10pt;
+    top: 38pt;
+    left: 150pt;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    padding: 8pt 15pt 15pt 15pt;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  table {
+    border: none;
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    border: none;
+    padding: 0;
+    vertical-align: top;
+  }
+  button {
+    font-size: 9pt;
+    width: 68pt;
+    height: 21pt;
+    margin: 0;
+    padding: 0;
+  }
+  input[type="text"] {
+    box-sizing: border-box;
+    font-size: 9pt;
+    width: 68pt;
+    height: 21pt;
+    line-height: normal;
+    margin: 0;
+    padding: 4pt 4pt 0 4pt;
+    border: 2px solid #878e90;
+  }
+  a, a:visited, a:active {
+    color: #00f !important;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+  /* для отладки верстки удалить 2 последних символа *//*
+  table, th, td {
+    outline: 1px solid black !important;
+  }
+  /* для отладки */
+</style>
+
+<!------------------------------------------------------------->
+<!-- Стили содержимого -->
+
+<style>
+  #content {
+    font-family: "Tahoma";
+    font-size: 10.2pt; /* точка масштабирования содержимого */
+    font-weight: normal;
+    font-style: normal;
+    font-variant: normal;
+    line-height: 1.3;
+  }
+  #content h1 {
+    font-size: 1.4em;
+    font-weight: bold;
+    margin: 12pt 0 2pt 0;
+  }
+  #content h2 {
+    font-family: "Trebuchet MS";
+    font-size: 1.3em;
+    font-weight: bold;
+    margin: 12pt 0 2pt 0;
+  }
+  #content h3 {
+    font-family: "Trebuchet MS";
+    font-size: 1.1em;
+    font-weight: bold;
+    margin: 8pt 0 2pt 0;
+  }
+  #content a {
+    font-size: 1em;
+  }
+  #content strong {
+    font-family: "Trebuchet MS";
+    font-size: 1.1em;
+    font-weight: bold;
+  }
+  #content p {
+    font-size: 1em;
+    line-height: 1.3;
+    margin: 2pt 0 4pt 0;
+  }
+  #content p.note {
+    background-color: #ffe0b2;
+    border-left: 5pt solid #e57373;
+    margin: 12pt 0;
+    padding: 8pt;
+  }
+  #content p.code {
+    /* при charset=utf-8 Courier New не вкрячивается */
+    font-family: "Lucida Console";
+    font-size: 0.95em;
+    white-space: nowrap;
+    overflow: hidden;
+    background-color: #ffe0b2;
+    border-left: 5pt solid #e57373;
+    margin: 12pt 0;
+    padding: 8pt;
+  }
+  #content table {
+    font-size: 10.2pt; /* em для масштабирования не работает */
+    border: none;
+    width: 100%;
+    border-collapse: collapse;
+    margin: 2pt 0 2pt -2pt;
+  }
+  #content table th {
+    font-size: 10.2pt; /* em для масштабирования не работает */
+    font-style: normal;
+    font-weight: bold;
+    border: none;
+    background-color: #e57373;
+    border-color: white;
+    border-style: solid;
+    border-width: 2pt 0 2pt 2pt;
+    padding: 4pt 4pt;
+    text-align: center;
+    vertical-align: middle;
+  }
+  #content table td {
+    font-size: 10.2pt; /* em для масштабирования не работает */
+    font-style: normal;
+    font-weight: normal;
+    border: none;
+    background-color: #ffe0b2;
+    border-color: white;
+    border-style: solid;
+    border-width: 2pt 0 2pt 2pt;
+    padding: 2pt 4pt;
+    vertical-align: top;
+  }
+</style>
+
+<!------------------------------------------------------------->
+<!-- Заголовок справки -->
+
+<div id = "header">
+<table style="height:38pt;table-layout:fixed;">
+  <tr>
+    <td
+      align = "left"
+      style = "
+        font-size: 15pt;
+        font-weight: bold;
+        padding-left: 8pt;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        vertical-align: middle;">
+      pgnService - Инструменты для обработки PGN-файлов
+    </td>
+
+    <td
+      align = "right"
+      style = "
+        width: 75pt;
+        padding-top: 8pt;
+        padding-right: 8pt;">
+      <button onclick = "jumpTop('ctlInp')">
+        В начало
+      </button>
+    </td>
+  </tr>
+</table>
+</div>
+
+<!------------------------------------------------------------->
+<!-- Меню справки -->
+
+<div id = "menu">
+<h1>Поиск</h1>
+
+<input
+  type    = "text"
+  id      = "ctlInp"
+  style   = "width:124pt;margin-bottom:6pt;"
+  onkeyup = "srhLive()"
+>
+
+<button
+  style = "
+    display: block;
+    width: 124pt;
+    margin-bottom: 6pt;"
+  onclick = "srhClear('ctlInp')"
+>
+  Очистить поиск
+</button>
+
+<h1>Содержание</h1>
+
+<ul>
+  <li><a  href = "#" onclick="jumpTop(); return false;">
+    1. О программе</a>
+  </li>
+
+  <li><a href = "#license" onclick="srhClear()">
+    2. Лицензия на использование</a>
+  </li>
+
+  <li><a href = "#files" onclick="srhClear()">
+    3. Установочный комплект</a>
+  </li>
+
+  <li><a href = "#launchpad" onclick="srhClear()">
+    4. Панель запуска</a>
+  </li>
+
+  <li><a href = "#remove" onclick="srhClear()">
+    5. Удаление с компьютера</a>
+  </li>
+
+  <li><a href = "#pgn" onclick="srhClear()">
+    6. PGN-файлы</a>
+  </li>
+</ul>
+
+<!-- почему не через кнопки? а потому, что так всякий умеет   -->
+<p style = "position:absolute;bottom:0;width:128pt;height:15pt;">
+Масштаб: RCtrl-0/+/-
+</p>
+</div>
+
+<!------------------------------------------------------------->
+<!-- Содержимое справки -->
+
+<div id = "content">
+
+<!-- ▼ Начало справки ▼ -->
+<!------------------------------------------------------------->
+
+<h1 style = "margin-top:4pt;">pgnService, версия 2026.06</h1>
+
+<p id = "banner">
+©&nbsp;2026&nbsp;Владимир&nbsp;Какоткин
+</p>
+
+<p style = "margin-top:12pt;">
+<strong>pgnService</strong> - небольшой набор небольших
+инструментов для обработки
+<a href = "#pgn" onlick = "hstAdd('#')">PGN</a>&#8209;файлов.
+Чистка, форматирование, перемешивание и нормализация, вот это вот
+все.
+</p>
+
+<p>
+Автор осознал необходимость иметь такой набор для себя лично,
+когда понял, что старые инструменты времен <strong>DOS</strong>
+и <strong>Windows&nbsp;9X</strong> (да, у меня есть и такие)
+использовать уже просто неприлично, и пора что&#8209;то делать.
+</p>
+
+<p>
+Этот набор программ был создан также и ради строчки в резюме -
+автор все&#8209;таки мало&#8209;мало наемный программист. Мой
+предыдущий
+<a
+  href    = "#"
+  title   = "Переход на сайт"
+  onclick = "openRU64(); return false;"
+><strong>Опус&nbsp;Магнум</strong></a>
+уже как&#8209;то не впечатляет работодателей в моем медвежьем
+углу:
+</p>
+
+<p class = "note">
+А так спросят:<br>
+- <strong>HTML, CSS, JavaScript?</strong><br>
+И я такой:<br>
+- А, во-от, - и скромно так ножкой ширк-ширк.<br>
+Они посмотрят по ссылке:<br>
+- И <strong>Lua!?</strong>
+Хренасе... Надо брать... Хорошие сапоги.
+</p>
+
+<a name = "license"></a>
+<h2>Лицензия на использование</h2>
+
+<p>
+Разрешается копировать, изменять, распространять или иначе
+использовать этот программный пакет и его исходный код, в том
+числе в коммерческих целях, не спрашивая разрешения, без
+отчислений и без указания авторства.
+</p>
+
+<h3>Ограничение по гарантийным обязательствам</h3>
+
+<p>
+Данный пакет и его исходный код предоставляются таким
+<strong>"КАК&nbsp;ОН&nbsp;ЕСТЬ"</strong> и без каких&#8209;либо
+гарантий. Автор не несет ответственности за любые, какие бы то
+ни было последствия, прямой и непрямой, специальный и иной ущерб,
+вызванный использованием этого программного пакета и его
+исходного кода.
+</p>
+
+<a name = "files"></a>
+<h2>Установочный комплект</h2>
+
+<p>
+Набор инструментов <strong>pgnSеrvice</strong> распространяется
+в виде установочного комплекта, в состав которого входит:
+</p>
+
+<div><table>
+  <tr>
+    <th width="140">Файл</th>
+    <th>Описание</th>
+  </tr>
+
+  <tr>
+    <td><strong>lua5.1.bin</strong></td>
+    <td>Интерпретатор языка <strong>Lua</strong></td>
+  </tr>
+
+  <tr>
+    <td><strong>lua5.1.dll</strong></td>
+    <td>Библиотека системных функций интерпретатора</td>
+  </tr>
+
+  <tr>
+    <td><strong>luaClean.lua</strong></td>
+    <td>Скрипт для чистки тегов в заголовках партий</td>
+  </tr>
+
+  <tr>
+    <td><strong>luaFormat.lua</strong></td>
+    <td>Скрипт для форматирования текста партий</td>
+  </tr>
+
+  <tr>
+    <td><strong>luaShuffle.lua</strong></td>
+    <td>Скрипт для перемешивания партий</td>
+  </tr>
+
+  <tr>
+    <td><strong>luaNormalize.lua</strong></td>
+    <td>Скрипт для стандартной сортировки партий</td>
+  </tr>
+
+  <tr>
+    <td><strong>cliC.bat</strong></td>
+    <td>
+      Скрипт для запуска <strong>luaClean.lua</strong> из
+      командной строки
+    </td>
+  </tr>
+
+  <tr>
+    <td><strong>cliF.bat</strong></td>
+    <td>
+      Скрипт для запуска <strong>luaFormat.lua</strong> из
+      командной строки
+    </td>
+  </tr>
+
+  <tr>
+    <td><strong>cliS.bat</strong></td>
+    <td>
+      Скрипт для запуска <strong>luaShuffle.lua</strong> из
+      командной строки
+    </td>
+  </tr>
+
+  <tr>
+    <td><strong>cliN.bat</strong></td>
+    <td>
+      Скрипт для запуска <strong>luaNormalize.lua</strong> из
+      командной строки
+    </td>
+  </tr>
+
+  <tr>
+    <td><strong>guiUtility.hta</strong></td>
+    <td>
+      Универсальный графический интерфейс запуска
+      <strong>lua</strong>&#8209;скриптов
+    </td>
+  </tr>
+
+  <tr>
+    <td><strong>guiStarter.hta</strong></td>
+    <td>
+      <strong>Панель запуска</strong> с выбором параметров для
+      <strong>lua</strong>&#8209;скриптов
+    </td>
+  </tr>
+
+  <tr>
+    <td><strong>pgnService.cfg</strong></td>
+    <td>
+      Файл параметров <strong>lua</strong>&#8209;скриптов
+    </td>
+  </tr>
+
+  <tr>
+    <td><strong>guiCreateLnk.vbs</strong></td>
+    <td>
+      Скрипт создания ярлыка <strong>Панели запуска</strong> для
+      <strong>Рабочего Стола</strong>
+    </td>
+  </tr>
+
+  <tr>
+    <td><strong>pgnService.ico</strong></td>
+    <td>
+      Иконка для ярлыка
+    </td>
+  </tr>
+
+  <tr>
+    <td><strong>example.pgn</strong></td>
+    <td>
+      <strong>PGN</strong>&#8209;файл для экспериментов
+    </td>
+  </tr>
+
+  <tr>
+    <td><strong>!clickme.hta</strong></td>
+    <td>
+      Этот файл справки
+    </td>
+  </tr>
+</table></div>
+
+<p>
+Установочный комплект собран в исполняемый
+<strong>SFX</strong>&#8209;архив.
+</p>
+
+<a name = "launchpad"></a>
+<h2>Панель запуска</h2>
+
+<p>
+Самый простой и рекомендуемый способ использования
+<strong>pgnService</strong> - двойным щелчком левой кнопки мыши
+в <strong>Проводнике</strong> запустить файл
+<strong>guiStarter.hta</strong>. И далее уже можно задавать
+параметры обработки перед использованием конкретного инструмента.
+За вызов инструмента (<strong>lua</strong>&#8209;скрипта)
+отвечает <strong>guiUtility.hta</strong>, но его отдельно
+запускать не нужно.
+</p>
+
+<p>
+Каждый из инструментов (форматирования, перемещивания и
+нормализации) выполняет чистку тегов в заголовках партий.
+Потому что без этого делать еще что-то другое просто неправильно.
+</p>
+
+<p class = "note">
+<strong>guiStarter.hta</strong> и <strong>guiUtility.hta</strong>
+общаются между собой через переменную системного окружения
+<strong>pgnS-retval</strong>. Это почему-то не нравится моему
+антивирусу <strong>360TS</strong>, вашему антивирусу наверное
+тоже не понравится. Но в данном наборе инструментов всю логику
+можно посмотреть в исходных кодах - никакого криминала тут даже
+рядом нет. У себя я просто включил на запросе антивируса опцию:
+<strong>Больше не спрашивать</strong>
+</p>
+
+<a name = "remove"></a>
+<h2>Удаление с компьютера</h2>
+
+<p>
+Программы этого пакета не устанавливают никаких компонентов
+<strong>Windows</strong>, и не пишут в реестр. Поэтому для
+удаления программного пакета с компьютера достаточно просто
+удалить его папку. И ярлык с <strong>Рабочего Стола</strong>,
+если он был создан при распаковке <strong>SFX</strong>-архива.
+</p>
+
+<a name = "pgn"></a>
+<h2>PGN-файлы</h2>
+
+<p>
+<strong>PGN (Portable Game Notation)</strong> - переносимый
+формат текстовых файлов для сохранения шахматных партий. Партии
+в таком файле, обычно с расширением имени <strong>.pgn</strong>,
+хранятся последовательно, общим числом от нуля и более.
+</p>
+
+<p>
+Каждая партия состоит из двух частей:
+<a href = "#tags" onlick = "hstAdd('#pgn')">метаданных</a> и
+<a href = "#moves" onlick = "hstAdd('#pgn')">текста</a>
+партии. Первая часть описывает партию в целом: турнир, имена
+игроков, результат и так далее. Вторая часть содержит ходы
+партии, записанные в краткой или полной нотации. Метаданные от
+текста партии отделяются пустой строкой.
+</p>
+
+<p>
+Полностью одна партия в <strong>PGN</strong>&#8209;файле выглядит
+примерно так:
+</p>
+
+<p class = "code">
+[Event "World Championship 01st"]<br>
+[Site "USA"]<br>
+[Date "?"]<br>
+[Round "6"]<br>
+[White "Steinitz, William"]<br>
+[Black "Zukertort, Johannes Hermann"]<br>
+[Result "1-0"]<br>
+<br>
+1. e4 e5 2. Nf3 Nc6 3. Bb5 Nf6 4. O-O<br>
+Nxe4 5. Re1 Nd6 6. Nxe5 Nxe5 7. Rxe5+<br>
+Be7 8. Nc3 O-O 9. Bd3 Bf6 10. Re3 g6 11.<br>
+b3 Re8 12. Qf3 Bg5 13. Rxe8+ Nxe8 14.<br>
+Bb2 c6 15. Ne4 Be7 16. Qe3 d5 17. Qd4 f6<br>
+18. Ng3 Be6 19. Re1 Ng7 20. h4 Qd7 21.<br>
+h5 Bf7 22. hxg6 Bxg6 23. Qe3 Kf7 24. Qf4<br>
+Re8 25. Re3 Ne6 26. Qg4 Nf8 27. Nf5 Bc5<br>
+28. Nh6+ Kg7 29. Nf5+ Kf7 30. Nh6+ Kg7<br>
+31. Nf5+ Kf7 32. Nh6+ Kg7 33. Nf5+ Kf7<br>
+34. Nh6+ Kg7 35. Bxg6 Qxg4 36. Nxg4 Rxe3<br>
+37. fxe3 Kxg6 38. Nxf6 Bb4 39. d3 Ne6<br>
+40. Kf2 h5 41. g4 h4 42. Nh5 Bd6 43. Kg2<br>
+c5 44. Bf6 Ng5 45. Bxg5 Kxg5 46. Kh3 Be5<br>
+47. Nf4 d4 48. Ne6+ Kf6 49. exd4 cxd4<br>
+50. Nc5 Kg5 51. Nxb7 Kf4 52. Na5 Bf6 53.<br>
+Nc6 Ke3 54. Nxa7 Kd2 55. Nc6 Kxc2 56. a4<br>
+Kxd3 57. Nb4+ Ke2 58. a5 Be7 59. Nd5 Kf3<br>
+60. Nxe7 d3 61. Nd5 1-0
+</p>
+
+<p>
+В свою очередь, каждая партия отделяется от следующей также
+пустой строкой.
+</p>
+
+<a name = "tags"></a>
+<h3>Метаданные</h3>
+<p>
+Метаданные партии состоят из <strong>тегов</strong> -
+информационных меток. Каждый тег заключается в квадратные скобки,
+и состоит из названия тега и его значения в двойных кавычках.
+Названия тегов могут состоять только из латинских букв, цифр
+и знака подчеркивания.
+</p>
+
+<p>
+В метаданных каждой партии должны присутствовать
+<strong>семь</strong> обязательных тегов, их назначение строго
+определено, но допускаются и дополнительные теги. Все теги могут
+принимать пустые значения.
+</p>
+
+<h3>FEN</h3>
+
+<p>
+Стандартный дополнительный тег <strong>FEN</strong> определяет
+начальную позицию. Он необходим для сохранения в
+<strong>PGN</strong>&#8209;файле фрагментов партий, а также
+партий, начинающихся с позиций, отличных от классической,
+например, партий в шахматы Фишера, известные также как
+<strong>"Шахматы&#8209;960"</strong>.
+</p>
+
+<p>
+Примеры:
+</p>
+
+<p class = "code">
+[FEN "8/2p5/7p/pP2k1pP/5pP1/8/1P2PPK1/8 w - -"]<br>
+[FEN "rkrbbnnq/pppppppp/8/8/8/8/PPPPPPPP/RKRBBNNQ w CAca -"]
+</p>
+
+<a name = "moves"></a>
+<h3>Текст партии</h3>
+
+<p>
+Текст партии состоит из ходов, записанных в краткой или полной
+нотации, и возможно, их номеров, комментариев, вариантов
+и завершающего маркера, равного значению тега
+<strong>Result</strong> в
+<a href = "#tags" onlick = "hstAdd('#moves')">метаданных</a>
+этой партии.
+</p>
+
+<p>
+Более подробную информацию о формате
+<strong>PGN</strong>&#8209;файлов можно узнать по ссылке:
+<a
+  href    = "#"
+  title   = "Переход на сайт"
+  onclick = "openWiki(); return false;"
+>https://ru.wikipedia.org/wiki/Portable_Game_Notation</a>
+</p>
+
+<!------------------------------------------------------------->
+<!-- ▲ Конец справки ▲ -->
+
+<hr
+style = "
+  border: none;
+  border-top: 1px solid black;
+  margin-top: 15pt;"
+/>
+
+<a name = "footer"></a>
+<p id = "footer" align = "center" style = "padding-bottom:15pt;">
+Конец справки.
+<a
+  href = "#"
+  onclick = "
+    hstAdd('#footer');
+    jumpTop(); return false;"
+>
+Перейти</a> в начало.
+</p>
+
+</div>
+</body>
+</html>
