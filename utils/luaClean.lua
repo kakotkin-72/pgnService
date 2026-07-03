@@ -1,3 +1,5 @@
+----------------------------------------------------------------
+-- pgnService 2026.07
 -- Чистка тегов в PGN-файле
 -- (С) 2026 Владимир Какоткин
 ----------------------------------------------------------------
@@ -39,7 +41,7 @@ if
   (not pcall(function() m_cfg = dofile(m_cfg) end)) or
   (not check())
 then
-  m_cfg = {0, 0, 0, 0, 1, 60, 3000} -- по умолчанию
+  m_cfg = { 0, 0, 0, 0, 1, 60, 3000 } -- по умолчанию
 end
 
 -- Чтение всей конфигурации
@@ -116,10 +118,10 @@ local m_tval = clone(m_tmpl)
 
 local
 function dformat(line)
-  line = string.gsub(line, "%s+", "")
-  line = string.gsub(line, "%.+", ".")
-  line = string.gsub(line, "^%.", "")
-  line = string.gsub(line, "%.$", "")
+  line = line:gsub("%s+", "")
+  line = line:gsub("%.+", ".")
+  line = line:gsub("^%.", "")
+  line = line:gsub("%.$", "")
 
   local
   function isleap(y)
@@ -129,7 +131,7 @@ function dformat(line)
   local retval = { "????", "??", "??" }
   local list = {}
 
-  for item in string.gmatch(line .. ".", "([^.]*).") do
+  for item in (line .. "."):gmatch("([^.]*).") do
     table.insert(list, item)
     if #list == 3 then break end
   end
@@ -137,7 +139,7 @@ function dformat(line)
   local ysub = list[1] or ""
   local ynum = nil
 
-  if string.match(ysub, "^%d+$") then
+  if ysub:match("^%d+$") then
     if #ysub == 2 then
       local val = tonumber(ysub)
       ysub = (val < 50) and ("20" .. ysub) or ("19" .. ysub)
@@ -158,7 +160,7 @@ function dformat(line)
   local msub = list[2] or ""
   local mnum = nil
 
-  if (msub ~= "") and string.match(msub, "^%d+$") then
+  if (msub ~= "") and msub:match("^%d+$") then
     local mfmt = (#msub == 1) and ("0" .. msub) or msub
     local val = tonumber(mfmt)
 
@@ -169,7 +171,7 @@ function dformat(line)
 
   local dsub = list[3] or ""
 
-  if (dsub ~= "") and string.match(dsub, "^%d+$") then
+  if (dsub ~= "") and dsub:match("^%d+$") then
     local dfmt = (#dsub == 1) and ("0" .. dsub) or dsub
     local val = tonumber(dfmt)
 
@@ -200,9 +202,7 @@ end
 
 local
 function lprobe(line)
-  if line:match('\\"%s*%]?$') then
-    line = line:gsub('\\"%s*%]?$', "'\"]")
-  end
+  line = line:gsub('\\"%s*%]?$', "'\"]")
 
   if line:sub(-1) ~= ']' then
     if line:sub(-1) ~= '"' then line = line .. '"' end
