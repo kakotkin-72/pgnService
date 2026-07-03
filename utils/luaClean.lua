@@ -79,7 +79,7 @@ local m_tmpl = {
   RESULT = '[Result "*"]'
 }
 
--- Для контроля и порядока вывода тегов в файл
+-- Для контроля и порядка вывода тегов в файл
 local c_keys = {
   "EVENT", "SITE", "DATE", "ROUND", "WHITE", "BLACK", "RESULT",
   "FEN", "ECO", "WHITEELO", "BLACKELO", "WHITEFIDEID",
