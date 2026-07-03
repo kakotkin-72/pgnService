@@ -1,12 +1,12 @@
 <!doctype html>
 <html>
 <head>
-<meta http-equiv="content-type" content="text/html;charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=8">
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
 <meta http-equiv="MSThemeCompatible" content="yes">
 <meta name="author" content="(С) 2026 Владимир Какоткин">
 
-<title>pgnService 2026.06</title>
+<title>pgnService 2026.07</title>
 
 <!------------------------------------------------------------->
 <!-- Блок: Первичная инициализация -->
@@ -88,11 +88,8 @@ var m_path = m_fso.GetParentFolderName(m_line.replace(/"/g, ""));
 
 function regGetDPI() {
   try {
-    var key =
-      "HKCU\\Control Panel\\Desktop\\WindowMetrics\\" +
-      "AppliedDPI";
-
-    return m_shl.RegRead(key);
+    var key = "HKCU\\Control Panel\\Desktop\\WindowMetrics\\";
+    return m_shl.RegRead(key + "AppliedDPI");
   } catch(e) {
     return 96;
   }
@@ -100,11 +97,8 @@ function regGetDPI() {
 
 function regIs1251() {
   try {
-    var key =
-      "HKLM\\SYSTEM\\CurrentControlSet\\Control\\" +
-      "Nls\\CodePage\\ACP";
-
-    return m_shl.RegRead(key) === "1251";
+    var key = "HKLM\\SYSTEM\\CurrentControlSet\\Control\\";
+    return m_shl.RegRead(key + "Nls\\CodePage\\ACP") === "1251";
   } catch(e) {
     return false;
   }
@@ -132,24 +126,24 @@ function winAdjustSize() {
   winCenter();
 }
 
-function txtQuote(text) {
-  if (!text) return '""';
+function txtQuote(txt) {
+  if (!txt) return '""';
 
-  var pure = text.replace(/^"+|"+$/g, "");
+  var pure = txt.replace(/^"+|"+$/g, "");
   pure = pure.replace(/"/g, '""');
 
   return '"' + pure + '"';
 }
 
-function dlgMsg(text) {
-  text = text.replace(/&/g,  "&amp;");
-  text = text.replace(/"/g,  "&quot;");
-  text = text.replace(/'/g,  "&#39;");
-  text = text.replace(/</g,  "&lt;");
-  text = text.replace(/>/g,  "&gt;");
-  text = text.replace(/\\/g, "\\\\");
-  text = text.replace(/  /g, " &nbsp;");
-  text = text.replace(/(\r\n|\n|\r)/g, "<br>");
+function dlgMsg(txt) {
+  txt = txt.replace(/&/g,  "&amp;");
+  txt = txt.replace(/"/g,  "&quot;");
+  txt = txt.replace(/'/g,  "&#39;");
+  txt = txt.replace(/</g,  "&lt;");
+  txt = txt.replace(/>/g,  "&gt;");
+  txt = txt.replace(/\\/g, "\\\\");
+  txt = txt.replace(/  /g, " &nbsp;");
+  txt = txt.replace(/(\r\n|\n|\r)/g, "<br>");
 
   var div = document.createElement("div");
 
@@ -158,7 +152,7 @@ function dlgMsg(text) {
   div.style.width      = "192pt";
   div.style.position   = "absolute";
   div.style.visibility = "hidden";
-  div.innerHTML        = text;
+  div.innerHTML        = txt;
 
   document.body.appendChild(div);
   var htxt = div.scrollHeight;
@@ -206,7 +200,7 @@ function dlgMsg(text) {
     "        margin:0;padding:0;'>i</font>"                     +
     "    </td>"                                                 +
     "    <td style='line-height:140%;text-align:left;"          +
-    "      vertical-align:top;'>"                        + text +
+    "      vertical-align:top;'>"                         + txt +
     "    </td>"                                                 +
     "  </tr>"                                                   +
     "</table>"                                                  +
@@ -322,9 +316,9 @@ var m_dictrus = {
     "File not found:\n"
 };
 
-function T(text) {
-  if (m_langrus) return text;
-  return m_dictrus[text] || text;
+function T(txt) {
+  if (m_langrus) return txt;
+  return m_dictrus[txt] || txt;
 }
 
 function lngMirror() {
@@ -353,16 +347,16 @@ function lngToggle(rus) {
     for (var i = items.length - 1; i >= 0; --i) {
       var ctl = items[i];
 
-      var text = ctl.innerHTML;
-      if (!text) continue;
+      var txt = ctl.innerHTML;
+      if (!txt) continue;
 
-      text = text.replace(/^\s+|\s+$/g, "");
-      text = text.replace(/\u00a0/g, " ");
-      text = text.replace(/\s+/g, " ");
-      text = text.replace(/<br\s*\/?>/gi, "<br>");
+      txt = txt.replace(/^\s+|\s+$/g, "");
+      txt = txt.replace(/\u00a0/g, " ");
+      txt = txt.replace(/\s+/g, " ");
+      txt = txt.replace(/<br\s*\/?>/gi, "<br>");
 
-      if (!dict[text]) continue;
-      ctl.innerHTML = dict[text];
+      if (!dict[txt]) continue;
+      ctl.innerHTML = dict[txt];
     }
   }
 
@@ -411,8 +405,8 @@ function cfgLoad() {
     inp.Close();
   } catch(e) {}
 
-  if (lng.indexOf("english") != -1) m_langrus = false; else
-  if (lng.indexOf("russian") != -1) m_langrus = true;
+  if (lng.indexOf("russian") != -1) m_langrus = true; else
+  if (lng.indexOf("english") != -1) m_langrus = false;
 
   m_resout = res.indexOf("blindly") == -1;
 
@@ -512,20 +506,16 @@ function spinUpd(id, val) { // адаптация: Spin-контролы
 }
 
 function spinPress() {
-  if (window.event.keyCode < 48 || window.event.keyCode > 57)
+  if ((window.event.keyCode < 48) || (window.event.keyCode > 57))
     window.event.returnValue = false; // не цифры
 }
 
 function spinDown(id, page, vmin, vmax) {
   var code = window.event.keyCode;
-  var ok = false;
 
   // Вверх/Вниз: 38, 40;  PgUp/PgDown: 33, 34
-  var list = [38, 40, 33, 34];
-  for (var i = 0; i < list.length; ++i)
-    if (list[i] == code) { ok = true; break; }
+  if (!(/^(38|40|33|34)$/.test(code))) return;
 
-  if (!ok) return;
   window.event.returnValue = false;
 
   var ctl = document.getElementById(id);
@@ -534,10 +524,12 @@ function spinDown(id, page, vmin, vmax) {
   if (isNaN(val)) val = vmin;
   val = Math.min(Math.max(val, vmin), vmax);
 
-  if (code == 38) val += 1;    else
-  if (code == 40) val -= 1;    else
-  if (code == 33) val += page; else
-  if (code == 34) val -= page;
+  switch (code) {
+    case 38: val += 1;    break;
+    case 40: val -= 1;    break;
+    case 33: val += page; break;
+    case 34: val -= page;
+  }
 
   val = Math.min(Math.max(val, vmin), vmax);
 
@@ -639,7 +631,7 @@ function onKeyDown() {
 
   if (quit) { self.close(); return; }
 
-  if (cmod && (code == 107 || code == 187)) { // Ctr +
+  if (cmod && ((code == 107) || (code == 187))) { // Ctr +
     evt.keyCode = 0;
     evt.returnValue = false;
 
@@ -648,7 +640,7 @@ function onKeyDown() {
     return false;
   }
   else
-  if (cmod && (code == 109 || code == 189)) { // Ctr -
+  if (cmod && ((code == 109) || (code == 189))) { // Ctr -
     evt.keyCode = 0;
     evt.returnValue = false;
 
@@ -657,7 +649,7 @@ function onKeyDown() {
     return false;
   }
   else
-  if (cmod && (code == 48 || code == 96)) { // Ctr-0
+  if (cmod && ((code == 48) || (code == 96))) { // Ctr-0
     evt.keyCode = 0;
     evt.returnValue = false;
 
@@ -1049,7 +1041,7 @@ window.onbeforeunload = cfgSave;
         onchange = "m_resout=this.checked">
     </td>
     <td style = "padding-top:2pt;">
-      <label for="ctlRes">
+      <label for = "ctlRes">
         Открывать итоговый файл в Блокноте
       </label>
     </td>

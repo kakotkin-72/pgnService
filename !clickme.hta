@@ -1,8 +1,8 @@
 <!doctype html>
 <html>
 <head>
-<meta http-equiv="content-type" content="text/html;charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=8">
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
 <meta http-equiv="MSThemeCompatible" content="yes">
 <meta name="author" content="(С) 2026 Владимир Какоткин">
 
@@ -107,24 +107,24 @@ function winIsMaximized() {
   return ret;
 }
 
-function txtQuote(text) {
-  if (!text) return '""';
+function txtQuote(txt) {
+  if (!txt) return '""';
 
-  var pure = text.replace(/^"+|"+$/g, "");
+  var pure = txt.replace(/^"+|"+$/g, "");
   pure = pure.replace(/"/g, '""');
 
   return '"' + pure + '"';
 }
 
-function dlgMsg(text) {
-  text = text.replace(/&/g,  "&amp;");
-  text = text.replace(/"/g,  "&quot;");
-  text = text.replace(/'/g,  "&#39;");
-  text = text.replace(/</g,  "&lt;");
-  text = text.replace(/>/g,  "&gt;");
-  text = text.replace(/\\/g, "\\\\");
-  text = text.replace(/  /g, " &nbsp;");
-  text = text.replace(/(\r\n|\n|\r)/g, "<br>");
+function dlgMsg(txt) {
+  txt = txt.replace(/&/g,  "&amp;");
+  txt = txt.replace(/"/g,  "&quot;");
+  txt = txt.replace(/'/g,  "&#39;");
+  txt = txt.replace(/</g,  "&lt;");
+  txt = txt.replace(/>/g,  "&gt;");
+  txt = txt.replace(/\\/g, "\\\\");
+  txt = txt.replace(/  /g, " &nbsp;");
+  txt = txt.replace(/(\r\n|\n|\r)/g, "<br>");
 
   var div = document.createElement("div");
 
@@ -133,7 +133,7 @@ function dlgMsg(text) {
   div.style.width      = "192pt";
   div.style.position   = "absolute";
   div.style.visibility = "hidden";
-  div.innerHTML        = text;
+  div.innerHTML        = txt;
 
   document.body.appendChild(div);
   var htxt = div.scrollHeight;
@@ -181,7 +181,7 @@ function dlgMsg(text) {
     "        margin:0;padding:0;'>i</font>"                     +
     "    </td>"                                                 +
     "    <td style='line-height:140%;text-align:left;"          +
-    "      vertical-align:top;'>"                        + text +
+    "      vertical-align:top;'>"                         + txt +
     "    </td>"                                                 +
     "  </tr>"                                                   +
     "</table>"                                                  +
@@ -253,7 +253,7 @@ function docOnClick() {
   if (atr && atr.specified) return true;
 
   atr = tag.getAttribute("href");
-  if (!atr || atr == "#") return true;
+  if (!atr || (atr == "#")) return true;
 
   if (atr.indexOf("#") == 0) {
     atr = atr.substring(1);
@@ -308,7 +308,7 @@ function docOnClick() {
 
 var SRH_HIBRD = "5pt solid #00f";
 var SRH_HIPAD = "8pt";
-var m_srhtop  = 25;
+var SRH_SHIFT = 25;
 var m_srhbase = [];   // запись: type, node, text, lbrd, lpad
 var m_srhbox  = null; // контейнер c тегами
 var m_srhctl  = null; // поле ввода текста для поиска
@@ -341,7 +341,7 @@ function srhInit(box, inp) {
       // адаптация: здесь можно ограничить
       var ign = (id == "BANNER") || (id == "FOOTER");
 
-      txt = child.innerHTML.replace(/^\s+|\s+$/g, '');
+      txt = child.innerHTML.replace(/^\s+|\s+$/g, "");
       if ((use && !ign) && (txt.length > 0)) {
         var pleft =
           child.style.paddingLeft ||
@@ -349,12 +349,12 @@ function srhInit(box, inp) {
 
         var bleft = child.style.borderLeft;
 
-        if (!bleft) { // ньюансы IE8
+        if (!bleft) { // ньюансы IE
           var cur = child.currentStyle;
           var bst = cur.borderLeftStyle;
 
           // сборка правильного инлайнового стиля
-          if (bst && bst != "none") {
+          if (bst && (bst != "none")) {
             bleft =
               cur.borderLeftWidth + " " + bst + " " +
               cur.borderLeftColor;
@@ -376,7 +376,7 @@ function srhInit(box, inp) {
     }
     else
     if (child.nodeType == 3) { // сырой текст без тегов
-      txt = child.nodeValue.replace(/^\s+|\s+$/g, '');
+      txt = child.nodeValue.replace(/^\s+|\s+$/g, "");
       if (txt.length < 1) continue;
 
       rec = { type: 3, node: child, text: child.nodeValue };
@@ -389,12 +389,13 @@ function srhLive() {
   if (!m_srhctl) return;
 
   var ctl = document.getElementById(m_srhctl);
-  var rng = document.body.createTextRange();
   var smpl = ctl.value.toLowerCase();
-  var live = smpl.length > 1;
 
   if (m_srhold == smpl) return;
   m_srhold = smpl;
+
+  var rng = document.body.createTextRange();
+  var live = smpl.length > 1;
 
   for (var i = 0; i < m_srhbase.length; ++i) {
     var rec = m_srhbase[i];
@@ -484,7 +485,7 @@ function srhClick(idx) {
   if (!tag) return;
 
   var ctl = document.getElementById(m_srhbox);
-  ctl.scrollTop = tag.offsetTop - m_srhtop;
+  ctl.scrollTop = tag.offsetTop - SRH_SHIFT;
 }
 
 function srhClickFirst() {
@@ -591,7 +592,7 @@ function zmtApply() {
 
   ctl.style.fontSize = size; // инлайновый размер
 
-  // ньюансы IE8
+  // ньюансы IE
   var list = ctl.getElementsByTagName("th");
   for (var i = 0; i < list.length; ++i)
     list[i].style.fontSize = size;
@@ -693,7 +694,7 @@ function onKeyDown() {
 
   if (quit) { self.close(); return; }
 
-  if (cmod && (code == 107 || code == 187)) { // Ctr +
+  if (cmod && ((code == 107) || (code == 187))) { // Ctr +
     evt.keyCode = 0;
     evt.returnValue = false;
 
@@ -705,7 +706,7 @@ function onKeyDown() {
     return false;
   }
   else
-  if (cmod && (code == 109 || code == 189)) { // Ctr -
+  if (cmod && ((code == 109) || (code == 189))) { // Ctr -
     evt.keyCode = 0;
     evt.returnValue = false;
 
@@ -717,7 +718,7 @@ function onKeyDown() {
     return false;
   }
   else
-  if (cmod && (code == 48 || code == 96)) { // Ctr-0
+  if (cmod && ((code == 48) || (code == 96))) { // Ctr-0
     evt.keyCode = 0;
     evt.returnValue = false;
 
@@ -744,7 +745,7 @@ function onKeyDown() {
     evt.returnValue = false;
 
     var ctl = document.getElementById("ctlInp");
-    if (ctl && ctl.value.length > 0)
+    if (ctl && (ctl.value.length > 0))
       srhClear("ctlInp");
     else
       self.close();
@@ -844,9 +845,9 @@ window.onload = function() {
   document.getElementById("content").
     attachEvent("onmousewheel", zmtWheel); // адаптация
 
-  document.onclick = docOnClick;
+  document.onclick      = docOnClick;
   document.onmousewheel = docMouseWheel;
-  document.onkeydown = onKeyDown;
+  document.onkeydown    = onKeyDown;
 
   window.onresize = onResize;
   winCenter();
@@ -1158,7 +1159,7 @@ window.onload = function() {
   </li>
 </ul>
 
-<!-- почему не через кнопки? а потому, что так всякий умеет   -->
+<!-- почему не через кнопки? а потому, что так всякий умеет -->
 <p style = "position:absolute;bottom:0;width:128pt;height:15pt;">
 Масштаб: RCtrl-0/+/-
 </p>
@@ -1172,7 +1173,7 @@ window.onload = function() {
 <!-- ▼ Начало справки ▼ -->
 <!------------------------------------------------------------->
 
-<h1 style = "margin-top:4pt;">pgnService, версия 2026.06</h1>
+<h1 style = "margin-top:4pt;">pgnService, версия 2026.07</h1>
 
 <p id = "banner">
 ©&nbsp;2026&nbsp;Владимир&nbsp;Какоткин

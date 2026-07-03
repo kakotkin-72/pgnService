@@ -7,8 +7,8 @@ set LNGRUS=1
 set LNGRUS=0
 )
 
-@set LUACLN=.\bin\lua5.1.bin .\utils\luaClean.lua
-@set LUAFLT=findstr /R "^"
+set LUACLN=.\bin\lua5.1.bin .\utils\luaClean.lua
+set LUAFLT=findstr /R "^"
 
 if %LNGRUS% equ 0 goto english
 

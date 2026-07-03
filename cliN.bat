@@ -7,8 +7,8 @@ set LNGRUS=1
 set LNGRUS=0
 )
 
-@set LUACLN=.\bin\lua5.1.bin .\utils\luaClean.lua
-@set LUAFLT=.\bin\lua5.1.bin .\utils\luaNormalize.lua
+set LUACLN=.\bin\lua5.1.bin .\utils\luaClean.lua
+set LUAFLT=.\bin\lua5.1.bin .\utils\luaNormalize.lua
 
 if %LNGRUS% equ 0 goto english
 

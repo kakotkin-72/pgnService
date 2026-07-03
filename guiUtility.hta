@@ -1,12 +1,12 @@
 <!doctype html>
 <html>
 <head>
-<meta http-equiv="content-type" content="text/html;charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=8">
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
 <meta http-equiv="MSThemeCompatible" content="yes">
 <meta name="author" content="(С) 2026 Владимир Какоткин">
 
-<title>pgnService 2026.06</title>
+<title>pgnService 2026.07</title>
 
 <!------------------------------------------------------------->
 <!-- Блок: Первичная инициализация -->
@@ -84,17 +84,17 @@ if (window.dialogArguments !== undefined)
 if (m_line == "") m_line = window.location.pathname;
 
 m_line = decodeURIComponent(m_line);
-if (m_line.charAt(0) == '/' || m_line.charAt(0) == '\\')
+if ((m_line.charAt(0) == "/") || (m_line.charAt(0) == "\\"))
   m_line = m_line.substr(1);
 
 m_line = m_line.replace(/\//g, "\\");
 
 if (m_line != "") {
-  var list;
-  list = m_line.match(/"[^"\\]*(?:\\.[^"\\]*)*"|[^ ]+/g) || [];
+  var list = m_line.match(/"[^"\\]*(?:\\.[^"\\]*)*"|[^ ]+/g);
+  if (!list) list = [];
 
   for (var i = 0; i < list.length; ++i)
-    { m_args.push(list[i].replace(/^"|"$/g, "")); }
+    m_args.push(list[i].replace(/^"|"$/g, ""));
 
   m_argc = m_args.length;
 }
@@ -113,11 +113,8 @@ var m_path = m_fso.GetParentFolderName(m_line.replace(/"/g, ""));
 
 function regGetDPI() {
   try {
-    var key =
-      "HKCU\\Control Panel\\Desktop\\WindowMetrics\\" +
-      "AppliedDPI";
-
-    return m_shl.RegRead(key);
+    var key = "HKCU\\Control Panel\\Desktop\\WindowMetrics\\";
+    return m_shl.RegRead(key + "AppliedDPI");
   } catch(e) {
     return 96;
   }
@@ -125,11 +122,8 @@ function regGetDPI() {
 
 function regIs1251() {
   try {
-    var key =
-      "HKLM\\SYSTEM\\CurrentControlSet\\Control\\" +
-      "Nls\\CodePage\\ACP";
-
-    return m_shl.RegRead(key) === "1251";
+    var key = "HKLM\\SYSTEM\\CurrentControlSet\\Control\\";
+    return m_shl.RegRead(key + "Nls\\CodePage\\ACP") === "1251";
   } catch(e) {
     return false;
   }
@@ -157,10 +151,10 @@ function winAdjustSize() {
   winCenter();
 }
 
-function txtQuote(text) {
-  if (!text) return '""';
+function txtQuote(txt) {
+  if (!txt) return '""';
 
-  var pure = text.replace(/^"+|"+$/g, "");
+  var pure = txt.replace(/^"+|"+$/g, "");
   pure = pure.replace(/"/g, '""');
 
   return '"' + pure + '"';
@@ -181,15 +175,15 @@ function txtFormat() { // txtFormat("{1}! {2}", "Hi", "Bro")
     });
 }
 
-function dlgMsg(text) {
-  text = text.replace(/&/g,  "&amp;");
-  text = text.replace(/"/g,  "&quot;");
-  text = text.replace(/'/g,  "&#39;");
-  text = text.replace(/</g,  "&lt;");
-  text = text.replace(/>/g,  "&gt;");
-  text = text.replace(/\\/g, "\\\\");
-  text = text.replace(/  /g, " &nbsp;");
-  text = text.replace(/(\r\n|\n|\r)/g, "<br>");
+function dlgMsg(txt) {
+  txt = txt.replace(/&/g,  "&amp;");
+  txt = txt.replace(/"/g,  "&quot;");
+  txt = txt.replace(/'/g,  "&#39;");
+  txt = txt.replace(/</g,  "&lt;");
+  txt = txt.replace(/>/g,  "&gt;");
+  txt = txt.replace(/\\/g, "\\\\");
+  txt = txt.replace(/  /g, " &nbsp;");
+  txt = txt.replace(/(\r\n|\n|\r)/g, "<br>");
 
   var div = document.createElement("div");
 
@@ -198,7 +192,7 @@ function dlgMsg(text) {
   div.style.width      = "192pt";
   div.style.position   = "absolute";
   div.style.visibility = "hidden";
-  div.innerHTML        = text;
+  div.innerHTML        = txt;
 
   document.body.appendChild(div);
   var htxt = div.scrollHeight;
@@ -246,7 +240,7 @@ function dlgMsg(text) {
     "        margin:0;padding:0;'>i</font>"                     +
     "    </td>"                                                 +
     "    <td style='line-height:140%;text-align:left;"          +
-    "      vertical-align:top;'>"                        + text +
+    "      vertical-align:top;'>"                         + txt +
     "    </td>"                                                 +
     "  </tr>"                                                   +
     "</table>"                                                  +
@@ -271,7 +265,7 @@ function dlgFolder(title) {
   var list = [];
 
   for (var i = 0; i < title.length; ++i)
-    { list.push(title.charCodeAt(i)); }
+    list.push(title.charCodeAt(i));
 
   title = list.join(",");
   list = null;
@@ -357,7 +351,7 @@ function docKeyDown() {
 
   if (quit) { self.close(); return; }
 
-  if (cmod && (code == 107 || code == 187)) { // Ctr +
+  if (cmod && ((code == 107) || (code == 187))) { // Ctr +
     evt.keyCode = 0;
     evt.returnValue = false;
 
@@ -366,7 +360,7 @@ function docKeyDown() {
     return false;
   }
   else
-  if (cmod && (code == 109 || code == 189)) { // Ctr -
+  if (cmod && ((code == 109) || (code == 189))) { // Ctr -
     evt.keyCode = 0;
     evt.returnValue = false;
 
@@ -375,7 +369,7 @@ function docKeyDown() {
     return false;
   }
   else
-  if (cmod && (code == 48 || code == 96)) { // Ctr-0
+  if (cmod && ((code == 48) || (code == 96))) { // Ctr-0
     evt.keyCode = 0;
     evt.returnValue = false;
 
@@ -458,9 +452,9 @@ var m_dictrus = {
     "Select a folder to save the PGN-file:"
 };
 
-function T(text) {
-  if (m_langrus) return text;
-  return m_dictrus[text] || text;
+function T(txt) {
+  if (m_langrus) return txt;
+  return m_dictrus[txt] || txt;
 }
 
 function lngMirror() {
@@ -490,16 +484,16 @@ function lngToggle(rus) {
     for (var i = items.length - 1; i >= 0; --i) {
       var ctl = items[i];
 
-      var text = ctl.innerHTML;
-      if (!text) continue;
+      var txt = ctl.innerHTML;
+      if (!txt) continue;
 
-      text = text.replace(/^\s+|\s+$/g, "");
-      text = text.replace(/\u00a0/g, " ");
-      text = text.replace(/\s+/g, " ");
-      text = text.replace(/<br\s*\/?>/gi, "<br>");
+      txt = txt.replace(/^\s+|\s+$/g, "");
+      txt = txt.replace(/\u00a0/g, " ");
+      txt = txt.replace(/\s+/g, " ");
+      txt = txt.replace(/<br\s*\/?>/gi, "<br>");
 
-      if (!dict[text]) continue;
-      ctl.innerHTML = dict[text];
+      if (!dict[txt]) continue;
+      ctl.innerHTML = dict[txt];
     }
   }
 
@@ -530,8 +524,8 @@ function cfgRead() {
     inp.Close();
   } catch(e) {}
 
-  if (lng.indexOf("english") != -1) m_langrus = false; else
-  if (lng.indexOf("russian") != -1) m_langrus = true;
+  if (lng.indexOf("russian") != -1) m_langrus = true; else
+  if (lng.indexOf("english") != -1) m_langrus = false;
 }
 
 </script>
@@ -570,10 +564,10 @@ function onBlur(id) {
     return;
   }
 
-  if (id != "ctlOut" || val == m_hint) return;
+  if ((id != "ctlOut") || (val == m_hint)) return;
 
   var valInp = document.getElementById("ctlInp").value;
-  if (valInp == "" || valInp == m_hint) return;
+  if ((valInp == "") || (valInp == m_hint)) return;
 
   if ((val.indexOf(":") == -1) && (val.indexOf("\\") == -1))
     val = m_fso.GetParentFolderName(valInp) + "\\" + val;
@@ -610,11 +604,11 @@ function onSelect(id) {
       ctl.value = val;
 
       if (m_easy) {
-        var path = m_fso.GetParentFolderName(val);
+        var dir = m_fso.GetParentFolderName(val);
 
         ctl = document.getElementById("ctlOut");
         ctl.className = "";
-        ctl.value = path + "\\result.pgn";
+        ctl.value = dir + "\\result.pgn";
 
         m_easy = false;
       }
@@ -626,14 +620,14 @@ function onSelect(id) {
   }
   else
   if (id == "ctlOut") {
-    var text = T("Выберите папку для сохранения PGN-файла:");
-    var path = dlgFolder(text);
+    var txt = T("Выберите папку для сохранения PGN-файла:");
+    var dir = dlgFolder(txt);
 
-    if (!path) return;
+    if (!dir) return;
 
     var ctl = document.getElementById("ctlOut");
     ctl.className = "";
-    ctl.value = path + "result.pgn";
+    ctl.value = dir + "result.pgn";
 
     m_easy = false;
   }
@@ -648,7 +642,7 @@ function doScript() {
   if (valInp == m_hint) valInp = "";
   if (valOut == m_hint) valOut = "";
 
-  if (valInp == "" || valOut == "") {
+  if ((valInp == "") || (valOut == "")) {
     dlgMsg(T("Необходимо определить имена файлов."));
     return;
   }
@@ -661,7 +655,7 @@ function doScript() {
   if (m_fso.FileExists(valInp)) {
     var file = m_fso.GetFile(valInp);
 
-    if (file.Size < 10) { //  < [Event ""]
+    if (file.Size < 10) { // меньше чем [Event ""]
       dlgMsg(T("Пустой файл:\n") + valInp);
       return;
     }
