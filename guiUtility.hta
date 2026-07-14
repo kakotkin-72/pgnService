@@ -6,7 +6,7 @@
 <meta http-equiv="MSThemeCompatible" content="yes">
 <meta name="author" content="(С) 2026 Владимир Какоткин">
 
-<title>pgnService 2026.07</title>
+<title>pgnService 2026.07.15</title>
 
 <!------------------------------------------------------------->
 <!-- Блок: Первичная инициализация -->
@@ -739,8 +739,10 @@ function doScript() {
     self.close();
   }
 
-  m_shl.AppActivate(m_fso.GetBaseName(valOut));
-  m_shl.Environment(eid).Item(vid) = "OK";
+  ret = m_fso.GetBaseName(valOut);
+
+  m_shl.AppActivate(ret);
+  m_shl.Environment(eid).Item(vid) = ret;
   self.close();
 }
 

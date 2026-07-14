@@ -6,14 +6,14 @@
 <meta http-equiv="MSThemeCompatible" content="yes">
 <meta name="author" content="(С) 2026 Владимир Какоткин">
 
-<title>pgnService 2026.07</title>
+<title>pgnService 2026.07.15</title>
 
 <!------------------------------------------------------------->
 <!-- Блок: Первичная инициализация -->
 
 <script language = "JScript">
 
-var m_w96dpi = 555, m_width = 555, m_height = 355;
+var m_w96dpi = 555, m_width = 555, m_height = 415;
 
 function winHide() {
   window.moveTo(-3000, -3000);
@@ -296,6 +296,10 @@ var m_dictrus = {
     "Leave a WhiteFideId and BlackFideId",
   "Сжимать неопределенную дату" :
     "Compress an undefined date",
+  "Форматировать с удалением<br>комментариев" :
+    "Format with removal of comments",
+  "Форматировать с удалением<br>вариантов" :
+    "Format with removal of variants",
   "Ширина форматирования<br>(20 - 180 символов)" :
     "Formatting width<br>(20 - 180 characters)",
   "Количество первых партий<br>для сортировок (до 10,000)" :
@@ -376,6 +380,7 @@ var m_cfgeco = false;
 var m_cfgelo = false;
 var m_cfgfid = false;
 var m_cfgfix = true;
+var m_cfgvar = true;
 var m_cfglen = 60;
 var m_cfglim = 1000;
 var m_resout = true;
@@ -384,13 +389,14 @@ function cfgLoad() {
   m_langrus = regIs1251();
 
   m_cfgset = m_cfgeco = m_cfgelo = m_cfgfid = false;
-  m_cfgfix = true;
+  m_cfgfix = m_cfgrem = m_cfgvar            = true;
+
   m_cfglen = 60;
   m_cfglim = 1000;
   m_resout = true;
 
   if (!m_fso.FileExists(m_config)) return;
-  var cfg = "return{0,0,0,0,1,60,1000}";
+  var cfg = "return{0,0,0,0,1,1,1,60,1000}";
   var lng = "", res = "";
 
   try {
@@ -415,9 +421,9 @@ function cfgLoad() {
   if (!cfg) return;
 
   cfg = cfg[1].split(",");
-  if (cfg.length != 7) return;
+  if (cfg.length != 9) return;
 
-  for (var i = 0; i < 7; ++i)
+  for (var i = 0; i < 9; ++i)
     cfg[i] = parseInt(cfg[i], 10);
 
   m_cfgset = cfg[0] != 0;
@@ -425,8 +431,10 @@ function cfgLoad() {
   m_cfgelo = cfg[2] != 0;
   m_cfgfid = cfg[3] != 0;
   m_cfgfix = cfg[4] != 0;
-  m_cfglen = Math.min(Math.max(cfg[5], 20), 180);
-  m_cfglim = Math.min(Math.max(cfg[6], 2),  10000);
+  m_cfgrem = cfg[5] != 0;
+  m_cfgvar = cfg[6] != 0;
+  m_cfglen = Math.min(Math.max(cfg[7], 20), 180);
+  m_cfglim = Math.min(Math.max(cfg[8], 2),  10000);
 }
 
 function cfgSave() {
@@ -434,7 +442,8 @@ function cfgSave() {
 
   var cfg = [
     (m_cfgset ? 1 : 0), (m_cfgeco ? 1 : 0), (m_cfgelo ? 1 : 0),
-    (m_cfgfid ? 1 : 0), (m_cfgfix ? 1 : 0),  m_cfglen, m_cfglim];
+    (m_cfgfid ? 1 : 0), (m_cfgfix ? 1 : 0), (m_cfgrem ? 1 : 0),
+    (m_cfgvar ? 1 : 0), m_cfglen, m_cfglim];
 
   try {
     var out  = m_fso.OpenTextFile(m_config, 2, true, 0);
@@ -450,7 +459,8 @@ function cfgSave() {
 function cfgApply(reset) {
   if (reset) {
     m_cfgset = m_cfgeco = m_cfgelo = m_cfgfid = false;
-    m_cfgfix = true;
+    m_cfgfix = m_cfgrem = m_cfgvar            = true;
+
     m_cfglen = 60;
     m_cfglim = 1000;
   }
@@ -461,6 +471,8 @@ function cfgApply(reset) {
     getElementById("ctlElo").checked = m_cfgelo;
     getElementById("ctlFid").checked = m_cfgfid;
     getElementById("ctlFix").checked = m_cfgfix;
+    getElementById("ctlRem").checked = m_cfgrem;
+    getElementById("ctlVar").checked = m_cfgvar;
     getElementById("ctlSize").value  = m_cfglen;
     getElementById("ctlCount").value = m_cfglim;
     getElementById("ctlRes").checked = m_resout;
@@ -706,10 +718,12 @@ function onStart(tool) {
   try { env.Remove(vid); } catch(e) {}
 
   winCenter();
-
   m_shl.AppActivate(document.title);
-  if ((ret == "OK") && m_resout)
+
+  if (m_resout && (ret != "")) {
     window.blur();
+    m_shl.AppActivate(ret);
+  }
 }
 
 function onHelp() {
@@ -913,6 +927,34 @@ window.onbeforeunload = cfgSave;
             </label>
           </td>
         </tr>
+
+        <tr>
+          <td style = "padding-top:1pt;">
+            <input
+              type     = "checkbox"
+              id       = "ctlRem"
+              onchange = "m_cfgrem=this.checked">
+          </td>
+          <td style = "padding-top:2pt;">
+            <label for = "ctlRem">
+              Форматировать с удалением<br>комментариев
+            </label>
+          </td>
+        </tr>
+
+        <tr>
+          <td style = "padding-top:1pt;">
+            <input
+              type     = "checkbox"
+              id       = "ctlVar"
+              onchange = "m_cfgvar=this.checked">
+          </td>
+          <td style = "padding-top:2pt;">
+            <label for = "ctlVar">
+              Форматировать с удалением<br>вариантов
+            </label>
+          </td>
+        </tr>
       </table>
     </td>
 
@@ -1013,11 +1055,13 @@ window.onbeforeunload = cfgSave;
             </label>
           </td>
         </tr>
-      </table>
 
-      <table>
-        <tr style = "text-align:right;">
-          <td style = "height:24pt;vertical-align:bottom;">
+        <tr style = "height:27pt;">
+          <td
+            colspan = "2"
+            style   = "
+              text-align: right;
+              vertical-align: bottom;">
             <button onclick = "onReset()">
               Сбросить
             </button>
